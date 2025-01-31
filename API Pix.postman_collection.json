@@ -1,0 +1,2923 @@
+{
+	"info": {
+		"_postman_id": "462ce5c7-e5c6-49b0-9318-c2413b8df5d2",
+		"name": "API Pix",
+		"description": "Esta **Postman Collection API Pix** foi desenvolvida pela **Efí**, para auxilio na integração da api Pix Efí. Tenha você também uma conta digital conosco.\n\nLink para a documentação técnica: [http://sejaefi.com.br/api-pix](http://gerencianet.com.br/api-pix)\n\nNos visite em: [https://www.sejaefi.com.br](https://www.gerencianet.com.br)\n\nOu em nossa comunidade no Discord: [https://discord.gg/ptGHMtczcV](https://discord.gg/ptGHMtczcV)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41555313"
+	},
+	"item": [
+		{
+			"name": "OAuth",
+			"item": [
+				{
+					"name": "/oauth/token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"postman.setEnvironmentVariable(\"Authorization\", pm.response.json().token_type + ' ' + jsonData.access_token);\r",
+									"\r",
+									"var access_token = pm.response.json().access_token\r",
+									"postman.setEnvironmentVariable(\"access_token\", access_token);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{client_secret}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{client_id}}",
+									"type": "string"
+								},
+								{
+									"key": "showPassword",
+									"value": false,
+									"type": "boolean"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"grant_type\": \"client_credentials\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{rota_base_pix}}/oauth/token",
+							"host": [
+								"{{rota_base_pix}}"
+							],
+							"path": [
+								"oauth",
+								"token"
+							]
+						},
+						"description": "Gera access_token à partir das credenciais do cliente."
+					},
+					"response": []
+				}
+			],
+			"description": "Para realizar o consumo deste e demais endpoints é necessário inserir o certificado .p12 fornecido pela Efí. Você mesmo pode gerar o seu certificado diretamente da sua conta e gerenciar os escopos em sua aplicação referentes a API Pix.\n\nPara gerar seu certificado .p12 acesse o menu API -> Meus Certificados e escolha o ambiente que deseja o certificado: Produção ou Homologação(Desenvolvimento), clique em -> Novo Certificado (Botão laranja).\n\nAtravés de sua conta gerencie os escopos para sua aplicação de acordo com sua necessidade. Para isto, acesso o menu API -> Minhas Aplicações e escolha a sua aplicação, clique em -> Editar(Botão laranja) -> Ative API Pix e escolha os escopos que deseja liberar em ambiente de Produção e/ou Homologação. -> Atualizar aplicação.\n\nPara configurar o certificado no Postman, acesse o menu \"File\" >> \"Settings\" >> \"Certificates\", clique em \"Add Certificate\". No campo \"Host\" da configuração do certificado, no Postman, informe pix-h.api.efipay.com.br para homologação ou pix.api.efipay.com.br para produção e, em \"PFX File\" selecione o arquivo do certificado.\n\nÉ importante configurar um Environment no Postman para que as automações da Collection funcionem.  \nVeja um exemplo de environment minimamente configurado:\n\n<img src=\"https://content.pstmn.io/7f703236-b466-4911-b345-9499e48d2110/aW1hZ2UucG5n\" width=\"817\" height=\"340\">",
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "",
+						"type": "string"
+					},
+					{
+						"key": "showPassword",
+						"value": false,
+						"type": "boolean"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Cobranças imediatas (cob)",
+			"item": [
+				{
+					"name": "/v2/cob",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"calendario\": {\r\n    \"expiracao\": 3600\r\n  },\r\n  \"devedor\": {\r\n    \"cpf\": \"12345678909\",\r\n    \"nome\": \"Francisco da Silva\"\r\n  },\r\n  \"valor\": {\r\n    \"original\": \"124.45\"\r\n  },\r\n  \"chave\": \"\",\r\n  \"solicitacaoPagador\": \"Informe o número ou identificador do pedido.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/cob",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"cob"
+							]
+						},
+						"description": "Endpoint para criar uma cobrança imediata, neste caso, o txid deve ser definido pelo PSP."
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/cob/:txid",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"calendario\": {\r\n    \"expiracao\": 3600\r\n  },\r\n  \"devedor\": {\r\n    \"cpf\": \"12345678909\",\r\n    \"nome\": \"Francisco da Silva\"\r\n  },\r\n  \"valor\": {\r\n    \"original\": \"124.45\"\r\n  },\r\n  \"chave\": \"\",\r\n  \"solicitacaoPagador\": \"Informe o número ou identificador do pedido.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/cob/:txid",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"cob",
+								":txid"
+							],
+							"variable": [
+								{
+									"key": "txid",
+									"value": "fc9a4366ff3d4964b5dbc6c91a8722d5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/cob/:txid",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"calendario\": {\r\n        \"expiracao\": 600\r\n    },\r\n    \"devedor\": {\r\n        \"nome\": \"João João\",\r\n        \"cpf\": \"12345678910\"\r\n    },\r\n    \"valor\": {\r\n        \"original\": \"350.00\"\r\n    },\r\n    \"chave\": \"joao@email.com\",\r\n    \"solicitacaoPagador\": \"Informe o número ou identificador do pedido.\",\r\n    \"infoAdicionais\": [\r\n        {\r\n            \"nome\": \"Nome 1\",\r\n            \"valor\": \"valor 1\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/cob/:txid",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"cob",
+								":txid"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "txid",
+									"value": "fc9a4366ff3d4964b5dbc6c91a8722d3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/cob/:txid",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/cob/:txid",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"cob",
+								":txid"
+							],
+							"variable": [
+								{
+									"key": "txid",
+									"value": "fc9a4366ff3d4964b5dbc6c91a8722d3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/cob",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/cob?inicio=2020-10-22T16:01:35Z&fim=2020-10-23T16:01:35Z",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"cob"
+							],
+							"query": [
+								{
+									"key": "inicio",
+									"value": "2020-10-22T16:01:35Z"
+								},
+								{
+									"key": "fim",
+									"value": "2020-10-23T16:01:35Z"
+								},
+								{
+									"key": "cpf",
+									"value": "12345678901",
+									"disabled": true
+								},
+								{
+									"key": "cnpj",
+									"value": "12345678901234",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "ATIVA",
+									"disabled": true
+								},
+								{
+									"key": "paginacao.paginaAtual",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "paginacao.itensPorPagina",
+									"value": "2",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cobranças com vencimento (cobV)",
+			"item": [
+				{
+					"name": "/v2/cobv/:txid",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"calendario\": {\r\n    \"dataDeVencimento\": \"2022-12-31\",\r\n    \"validadeAposVencimento\": 30\r\n  },\r\n  \"devedor\": {\r\n    \"cnpj\": \"53747188000100\",\r\n    \"nome\": \"Pix Empreendimentos\",\r\n    \"email\": \"emp.pix@mail.com.br\",\r\n    \"logradouro\": \"Rua A, número 8\",\r\n    \"cidade\": \"Ouro Preto\",\r\n    \"uf\": \"MG\",\r\n    \"cep\": \"35400000\"\r\n  },\r\n  \"valor\": {\r\n    \"original\": \"100.00\",\r\n    \"abatimento\": {\r\n        \"modalidade\": 1,\r\n        \"valorPerc\": \"5.00\"\r\n    },\r\n    \"desconto\": {\r\n        \"modalidade\": 3,\r\n        \"valorPerc\": \"1.00\"\r\n    },\r\n    \"juros\": {\r\n        \"modalidade\": 1,\r\n        \"valorPerc\": \"0.25\"\r\n    },\r\n    \"multa\": {\r\n        \"modalidade\": 2,\r\n        \"valorPerc\": \"2.00\"\r\n    }\r\n  },\r\n  \"chave\": \"5f84a4c5-c5cb-4599-9f13-7eb4d419dacc\",\r\n  \"solicitacaoPagador\": \"Informe o número ou identificador do pedido.\",\r\n  \"infoAdicionais\": [\r\n      {\r\n      \"nome\": \"Campo 1\",\r\n      \"valor\": \"Informação Adicional1 do PSP-Recebedor\"\r\n    }\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/cobv/:txid",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"cobv",
+								":txid"
+							],
+							"variable": [
+								{
+									"key": "txid",
+									"value": "7978c0c97ea847e78e8849634473c1f1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/cobv/:txid",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"devedor\": {\r\n    \"logradouro\": \"Alameda Souza, Numero 80, Bairro Braz\",\r\n    \"cidade\": \"Recife\",\r\n    \"uf\": \"PE\",\r\n    \"cep\": \"70011750\",\r\n    \"cpf\": \"12345678909\",\r\n    \"nome\": \"Francisco da Silva\"\r\n  },\r\n  \"valor\": {\r\n    \"original\": \"123.45\"\r\n  },\r\n  \"solicitacaoPagador\": \"Cobrança dos serviços prestados.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/cobv/:txid",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"cobv",
+								":txid"
+							],
+							"variable": [
+								{
+									"key": "txid",
+									"value": "7978c0c97ea847e78e8849634473c1f1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/cobv/:txid",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/cobv/:txid",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"cobv",
+								":txid"
+							],
+							"query": [
+								{
+									"key": "revisao",
+									"value": "0",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "txid",
+									"value": "7978c0c97ea847e78e8849634473c1f1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/cobv",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/cobv?inicio=2021-12-31T23:59:59Z&fim=2022-12-31T23:59:59Z",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"cobv"
+							],
+							"query": [
+								{
+									"key": "inicio",
+									"value": "2021-12-31T23:59:59Z"
+								},
+								{
+									"key": "fim",
+									"value": "2022-12-31T23:59:59Z"
+								},
+								{
+									"key": "locationPresente",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "revisao",
+									"value": "25",
+									"disabled": true
+								},
+								{
+									"key": "cpf",
+									"value": "12345678908",
+									"disabled": true
+								},
+								{
+									"key": "cnpj",
+									"value": "12345678000195",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "REMOVIDA_PELO_USUARIO_RECEBEDOR",
+									"disabled": true
+								},
+								{
+									"key": "loteCobVId",
+									"value": "12",
+									"disabled": true
+								},
+								{
+									"key": "paginacao.itensPorPagina",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "paginacao.paginaAtual",
+									"value": "1",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Gestão de Pix",
+			"item": [
+				{
+					"name": "/v2/pix/:e2eId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/pix/:e2eId",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"pix",
+								":e2eId"
+							],
+							"variable": [
+								{
+									"key": "e2eId",
+									"value": "{{e2eId}}",
+									"description": "{{e2eId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/pix",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/pix?inicio=2022-01-15T00:00:00.000Z&fim=2022-12-19T23:00:00.000Z",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"pix"
+							],
+							"query": [
+								{
+									"key": "inicio",
+									"value": "2022-01-15T00:00:00.000Z",
+									"description": "*"
+								},
+								{
+									"key": "fim",
+									"value": "2022-12-19T23:00:00.000Z",
+									"description": "*"
+								},
+								{
+									"key": "txId",
+									"value": "CD1FE328C875481285A6F233AE41B66",
+									"disabled": true
+								},
+								{
+									"key": "cpf",
+									"value": "62499313099",
+									"disabled": true
+								},
+								{
+									"key": "cnpj",
+									"value": "17709783000180",
+									"disabled": true
+								},
+								{
+									"key": "paginacao.paginaAtual",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "paginacao.itensPorPagina",
+									"value": "1",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/gn/pix/:idEnvio",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"valor\": \"00.01\",\r\n  \"pagador\": {\r\n    \"chave\": \"chave_pagador\",\r\n    \"infoPagador\": \"Segue o pagamento da conta\"\r\n  },\r\n  \"favorecido\": {\r\n    \"chave\": \"chave_favorecido\"\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/gn/pix/:idEnvio",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"gn",
+								"pix",
+								":idEnvio"
+							],
+							"variable": [
+								{
+									"key": "idEnvio",
+									"value": null,
+									"description": "Id da Transação (string ^[a-zA-Z0-9]{1,35}$)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/gn/pix/enviados/:e2eid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/gn/pix/enviados/:e2eid",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"gn",
+								"pix",
+								"enviados",
+								":e2eid"
+							],
+							"variable": [
+								{
+									"key": "e2eid",
+									"value": "E09089356202210201807a89ce0cb94"
+								}
+							]
+						},
+						"description": "Endpoint para consultar um Pix através de um e2eid."
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/gn/pix/enviados/id-envio/:idEnvio",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/gn/pix/enviados/:e2eid",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"gn",
+								"pix",
+								"enviados",
+								":e2eid"
+							],
+							"variable": [
+								{
+									"key": "e2eid",
+									"value": "E09089356202210201807a89ce0cb94"
+								}
+							]
+						},
+						"description": "Endpoint para consultar um Pix através de um e2eid."
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/gn/pix/enviados",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/gn/pix/enviados?inicio=2022-01-01T00:00:00.000Z&fim=2022-10-26T23:59:59.000Z",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"gn",
+								"pix",
+								"enviados"
+							],
+							"query": [
+								{
+									"key": "inicio",
+									"value": "2022-01-01T00:00:00.000Z",
+									"description": "* Obrigatório"
+								},
+								{
+									"key": "fim",
+									"value": "2022-10-26T23:59:59.000Z",
+									"description": "* Obrigatório"
+								},
+								{
+									"key": "devolucaoPresente",
+									"value": "false",
+									"description": "true/false",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "REALIZADO",
+									"description": "\"EM_PROCESSAMENTO\", \"NAO_REALIZADO\", \"REALIZADO\"",
+									"disabled": true
+								},
+								{
+									"key": "paginacao.paginaAtual",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "paginacao.itensPorPagina",
+									"value": "100",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Endpoint para consultar Pix recebidos."
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/pix/:e2eid/devolucao/:id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"valor\": \"7.89\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/pix/:e2eid/devolucao/:id",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"pix",
+								":e2eid",
+								"devolucao",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "e2eid",
+									"value": "{{e2eId}}"
+								},
+								{
+									"key": "id",
+									"value": "{{devolutionCustomId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/pix/:e2eId/devolucao/:id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/pix/:e2eId/devolucao/:id",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"pix",
+								":e2eId",
+								"devolucao",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "e2eId",
+									"value": "{{e2eId}}"
+								},
+								{
+									"key": "id",
+									"value": "{{devolutionCustomId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Payload locations",
+			"item": [
+				{
+					"name": "/v2/loc",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tipoCob\": \"cob\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/loc",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"loc"
+							]
+						},
+						"description": "Criar location do payload"
+					},
+					"response": [
+						{
+							"name": "Dados da location do Payload.",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "<token>",
+										"description": "Added as a part of security scheme: oauth2"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/loc",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"loc"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "location",
+									"value": "http://DnsERDBIiPFPKw.qvfsPsn3StHmwuez2c2cQW6tgcQLojpe8-h49U4dduCTe5+mE",
+									"description": ""
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"id\": 7716,\n \"location\": \"qrcodes-pix.gerencianet.com.br/v2/2353c790eefb11eaadc10242ac120002\",\n \"tipoCob\": \"cob\",\n \"criacao\": \"2020-03-11T21:19:51.013Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "/v2/loc",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "hhttps://pix-h.api.efipay.com.br/v2/loc?inicio=2022-01-15T00:00:00.000Z&fim=2022-12-19T23:00:00.000Z",
+							"protocol": "hhttps",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"loc"
+							],
+							"query": [
+								{
+									"key": "inicio",
+									"value": "2022-01-15T00:00:00.000Z",
+									"description": "(Required) "
+								},
+								{
+									"key": "fim",
+									"value": "2022-12-19T23:00:00.000Z",
+									"description": "(Required) "
+								},
+								{
+									"key": "txIdPresente",
+									"value": "true",
+									"description": "boolean",
+									"disabled": true
+								},
+								{
+									"key": "tipoCob",
+									"value": "cob",
+									"description": "string",
+									"disabled": true
+								},
+								{
+									"key": "paginacao.paginaAtual",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "paginacao.itensPorPagina",
+									"value": "100",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Endpoint para consultar locations cadastradas"
+					},
+					"response": [
+						{
+							"name": "lista dos locations cadastrados de acordo com o critério de busca.",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "<token>",
+										"description": "Added as a part of security scheme: oauth2"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/loc?inicio=<dateTime>&fim=<dateTime>&txIdPresente=<boolean>&tipoCob=<string>&paginacao.paginaAtual=0&paginacao.itensPorPagina=100",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"loc"
+									],
+									"query": [
+										{
+											"key": "inicio",
+											"value": "<dateTime>"
+										},
+										{
+											"key": "fim",
+											"value": "<dateTime>"
+										},
+										{
+											"key": "txIdPresente",
+											"value": "<boolean>"
+										},
+										{
+											"key": "tipoCob",
+											"value": "<string>"
+										},
+										{
+											"key": "paginacao.paginaAtual",
+											"value": "0"
+										},
+										{
+											"key": "paginacao.itensPorPagina",
+											"value": "100"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"parametros\": {\n  \"inicio\": \"2020-04-01T00:00:00Z\",\n  \"fim\": \"2020-04-01T23:59:59Z\",\n  \"paginacao\": {\n   \"paginaAtual\": 0,\n   \"itensPorPagina\": 100,\n   \"quantidadeDePaginas\": 1,\n   \"quantidadeTotalDeItens\": 3\n  }\n },\n \"loc\": [\n  {\n   \"allOf\": [\n    {\n     \"$ref\": \"#/components/examples/payloadLocationResponse1/value\"\n    }\n   ]\n  },\n  {\n   \"allOf\": [\n    {\n     \"$ref\": \"#/components/examples/payloadLocationResponse2/value\"\n    }\n   ]\n  },\n  {\n   \"allOf\": [\n    {\n     \"$ref\": \"#/components/examples/payloadLocationResponse3/value\"\n    }\n   ]\n  }\n ]\n}"
+						}
+					]
+				},
+				{
+					"name": "/v2/loc/:id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/loc/:id",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"loc",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "Recupera a location do payload"
+					},
+					"response": [
+						{
+							"name": "Mensagens de erro",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "<token>",
+										"description": "Added as a part of security scheme: oauth2"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/loc/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"loc",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"nome\": \"location_nao_encontrada\",\n \"mensagem\": \"Nenhum location encontrado para o identificador informado\"\n}"
+						},
+						{
+							"name": "Dados da location do Payload.",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "<token>",
+										"description": "Added as a part of security scheme: oauth2"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/loc/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"loc",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"id\": 7716,\n \"txid\": \"fda9460fe04e4f129b72863ae57ee22f\",\n \"location\": \"qrcodes-pix.gerencianet.com.br/v2/cobv/2353c790eefb11eaadc10242ac120002\",\n \"tipoCob\": \"cobv\",\n \"criacao\": \"2020-03-11T21:19:51.013Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "/v2/loc/:id/qrcode",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/loc/:id/qrcode",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"loc",
+								":id",
+								"qrcode"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "",
+									"description": "(Required) "
+								}
+							]
+						},
+						"description": "Endpoint para retornar a string de um QR Code e sua imagem em base64.\n"
+					},
+					"response": [
+						{
+							"name": "Mensagens de erro",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "<token>",
+										"description": "Added as a part of security scheme: oauth2"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/loc/:id/qrcode",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"loc",
+										":id",
+										"qrcode"
+									],
+									"variable": [
+										{
+											"key": "id"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"nome\": \"location_nao_encontrada\",\n \"mensagem\": \"Nenhum location encontrado para o identificador informado\"\n}"
+						},
+						{
+							"name": "QR Code gerado.",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "<token>",
+										"description": "Added as a part of security scheme: oauth2"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/loc/:id/qrcode",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"loc",
+										":id",
+										"qrcode"
+									],
+									"variable": [
+										{
+											"key": "id"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"qrcode\": \"00020104141234567890123426660014BR.GOV.BCB.PIX014466756C616E6F32303139406578616D706C652E636F6D27300012BR.COM.OUTRO011001234567895204000053039865406123.55802BR5915NOMEDORECEBEDOR6008BRASILIA61087007490062530515RP12345678-201950300017BR.GOV.BCB.BRCODE01051.0.080450014BR.GOV.BCB.PIX0123PADRAO.URL.PIX/0123ABCD81390012BR.COM.OUTRO01190123.ABCD.3456.WXYZ6304EB76\",\n \"qrcodeImage\": \"data:image/png;base64,representacaoEmBase64DaImagemDoQrCode\"\n}"
+						}
+					]
+				},
+				{
+					"name": "/v2/loc/:id/txid",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/loc/:id/txid",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"loc",
+								":id",
+								"txid"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "",
+									"description": "(Required) "
+								}
+							]
+						},
+						"description": "Endpoint para desvinculo de um txid de uma location\n"
+					},
+					"response": [
+						{
+							"name": "txid desvinculado.",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "<token>",
+										"description": "Added as a part of security scheme: oauth2"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/loc/:id/txid",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"loc",
+										":id",
+										"txid"
+									],
+									"variable": [
+										{
+											"key": "id"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"id\": 2316,\n \"location\": \"qrcodes-pix.gerencianet.com.br/v2/a8534e273ecb47d3ac30613104544466\",\n \"tipoCob\": \"cob\",\n \"criacao\": \"2020-05-31T19:39:54.013Z\"\n}"
+						},
+						{
+							"name": "Mensagens de erro",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "<token>",
+										"description": "Added as a part of security scheme: oauth2"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/loc/:id/txid",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"loc",
+										":id",
+										"txid"
+									],
+									"variable": [
+										{
+											"key": "id"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"nome\": \"location_nao_encontrada\",\n \"mensagem\": \"Nenhum location encontrado para o identificador informado\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Cobranças em Lote",
+			"item": [
+				{
+					"name": "Cobrança com vencimento (cobV)",
+					"item": [
+						{
+							"name": "/v2/lotcobv/:id",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"descricao\": \"Cobranças dos alunos do turno vespertino\",\r\n    \"cobsv\": [\r\n        {\r\n            \"calendario\": {\r\n                \"dataDeVencimento\": \"2020-12-31\",\r\n                \"validadeAposVencimento\": 30\r\n            },\r\n            \"txid\": \"fb2761260e554ad593c7226beb5cb650\",\r\n            \"devedor\": {\r\n                \"cpf\": \"08577095428\",\r\n                \"nome\": \"João Souza\"\r\n            },\r\n            \"valor\": {\r\n                \"original\": \"100.00\"\r\n            },\r\n            \"chave\": \"7c084cd4-54af-4172-a516-a7d1a12b75cc\",\r\n            \"solicitacaoPagador\": \"Informar matrícula\"\r\n        },\r\n        {\r\n            \"calendario\": {\r\n                \"dataDeVencimento\": \"2020-12-31\",\r\n                \"validadeAposVencimento\": 30\r\n            },\r\n            \"txid\": \"7978c0c97ea847e78e8849634473c1f1\",\r\n            \"devedor\": {\r\n                \"cpf\": \"15311295449\",\r\n                \"nome\": \"Manoel Silva\"\r\n            },\r\n            \"valor\": {\r\n                \"original\": \"100.00\"\r\n            },\r\n            \"chave\": \"7c084cd4-54af-4172-a516-a7d1a12b75cc\",\r\n            \"solicitacaoPagador\": \"Informar matrícula\"\r\n        }\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/lotecobv/:id",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"lotecobv",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "5",
+											"description": "int64 (Identificador do lote em formato numérico)"
+										}
+									]
+								},
+								"description": "Criar ou alterar um lote de cobranças com vencimento."
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/lotcobv/:id",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"cobsv\": [\r\n        {\r\n            \"calendario\": {\r\n                \"dataDeVencimento\": \"2020-01-10\"\r\n            },\r\n            \"txid\": \"fb2761260e554ad593c7226beb5cb650\",\r\n            \"valor\": {\r\n                \"original\": \"110.00\"\r\n            }\r\n        },\r\n        {\r\n            \"calendario\": {\r\n                \"dataDeVencimento\": \"2020-01-10\"\r\n            },\r\n            \"txid\": \"7978c0c97ea847e78e8849634473c1f1\",\r\n            \"valor\": {\r\n                \"original\": \"110.00\"\r\n            }\r\n        }\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/lotecobv/:id",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"lotecobv",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "",
+											"description": "int64 (Identificador do lote em formato numérico)"
+										}
+									]
+								},
+								"description": "Revisar cobranças específicas dentro de um lote de cobranças com vencimento."
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/lotcobv/:id",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/lotecobv/:id",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"lotecobv",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "",
+											"description": "int64 (Identificador do lote em formato numérico)"
+										}
+									]
+								},
+								"description": "Consultar um lote específico de cobranças com vencimento"
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/lotcobv",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/lotecobv?inicio=2024-01-01T16:01:35Z&fim=2024-12-30T16:01:35Z",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"lotecobv"
+									],
+									"query": [
+										{
+											"key": "inicio",
+											"value": "2024-01-01T16:01:35Z"
+										},
+										{
+											"key": "fim",
+											"value": "2024-12-30T16:01:35Z"
+										},
+										{
+											"key": "paginacao.paginaAtual",
+											"value": "0",
+											"disabled": true
+										},
+										{
+											"key": "paginacao.itensPorPagina",
+											"value": "50",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Consultar lista de lotes de cobranças com vencimento através de parâmetros como início e fim"
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Split de pagamento Pix",
+			"item": [
+				{
+					"name": "Configuração",
+					"item": [
+						{
+							"name": "/v2/gn/split/config",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"descricao\": \"Split pagamento -  Plano 1\",\r\n    \"lancamento\": {\r\n        \"imediato\": true\r\n    },\r\n    \"split\": {\r\n        \"divisaoTarifa\": \"assumir_total\",\r\n        \"minhaParte\": {\r\n            \"tipo\": \"porcentagem\",\r\n            \"valor\": \"60.00\"\r\n        },\r\n        \"repasses\": [\r\n            {\r\n                \"tipo\": \"porcentagem\",\r\n                \"valor\": \"15.00\",\r\n                \"favorecido\": {\r\n                    \"cpf\": \"12345678909\",\r\n                    \"conta\": \"1234567\"\r\n                }\r\n            },\r\n            {\r\n                \"tipo\": \"porcentagem\",\r\n                \"valor\": \"25.00\",\r\n                \"favorecido\": {\r\n                    \"cpf\": \"94271564656\",\r\n                    \"conta\": \"7654321\"\r\n                }\r\n            }\r\n        ]\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/split/config",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"split",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/split/config/:id",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"descricao\": \"Split pagamento -  Plano 2\",\r\n    \"lancamento\": {\r\n        \"imediato\": true\r\n    },\r\n    \"split\": {\r\n        \"divisaoTarifa\": \"assumir_total\",\r\n        \"minhaParte\": {\r\n            \"tipo\": \"porcentagem\",\r\n            \"valor\": \"60.00\"\r\n        },\r\n        \"repasses\": [\r\n            {\r\n                \"tipo\": \"porcentagem\",\r\n                \"valor\": \"20.00\",\r\n                \"favorecido\": {\r\n                    \"cpf\": \"12345678909\",\r\n                    \"conta\": \"1234567\"\r\n                }\r\n            },\r\n            {\r\n                \"tipo\": \"porcentagem\",\r\n                \"valor\": \"20.00\",\r\n                \"favorecido\": {\r\n                    \"cpf\": \"94271564656\",\r\n                    \"conta\": \"7654321\"\r\n                }\r\n            }\r\n        ]\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/split/config/:id",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"split",
+										"config",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "7978c0c97ea847e78e8849634473c1f1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "v2/gn/split/config/:id",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/split/config/:id",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"split",
+										"config",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "6aeddee74dd1a890c0ace71f53f70001"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cobrança com Split",
+					"item": [
+						{
+							"name": "/v2/cob/:txid",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"calendario\": {\r\n    \"expiracao\": 3600\r\n  },\r\n  \"devedor\": {\r\n    \"cpf\": \"12345678909\",\r\n    \"nome\": \"Francisco da Silva\"\r\n  },\r\n  \"valor\": {\r\n    \"original\": \"124.45\"\r\n  },\r\n  \"chave\": \"\",\r\n  \"solicitacaoPagador\": \"Informe o número ou identificador do pedido.\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/cob/:txid",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"cob",
+										":txid"
+									],
+									"variable": [
+										{
+											"key": "txid",
+											"value": "fc9a4366ff3d4964b5dbc6c91a8722d5"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/split/cob/ :txid /vinculo/ :splitConfigId",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/split/cob/:txid/vinculo/:splitConfigId",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"split",
+										"cob",
+										":txid",
+										"vinculo",
+										":splitConfigId"
+									],
+									"variable": [
+										{
+											"key": "txid",
+											"value": "7978c0c97ea847e78e8849634473c1f1"
+										},
+										{
+											"key": "splitConfigId",
+											"value": "6aeddee74dd1a890c0ace71f53f70001"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/split/cob/:txid",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/split/cob/:txid",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"split",
+										"cob",
+										":txid"
+									],
+									"variable": [
+										{
+											"key": "txid",
+											"value": "7978c0c97ea847e78e8849634473c1f1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/split/cob/:txid/vinculo",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/split/cob/:txid/vinculo/",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"split",
+										"cob",
+										":txid",
+										"vinculo",
+										""
+									],
+									"variable": [
+										{
+											"key": "txid",
+											"value": "7978c0c97ea847e78e8849634473c1f1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cobrança com vencimento e com Split",
+					"item": [
+						{
+							"name": "/v2/cobv/:txid",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"calendario\": {\r\n    \"dataDeVencimento\": \"2022-12-31\",\r\n    \"validadeAposVencimento\": 30\r\n  },\r\n  \"devedor\": {\r\n    \"cnpj\": \"53747188000100\",\r\n    \"nome\": \"Pix Empreendimentos\",\r\n    \"email\": \"emp.pix@mail.com.br\",\r\n    \"logradouro\": \"Rua A, número 8\",\r\n    \"cidade\": \"Ouro Preto\",\r\n    \"uf\": \"MG\",\r\n    \"cep\": \"35400000\"\r\n  },\r\n  \"valor\": {\r\n    \"original\": \"100.00\",\r\n    \"abatimento\": {\r\n        \"modalidade\": 1,\r\n        \"valorPerc\": \"5.00\"\r\n    },\r\n    \"desconto\": {\r\n        \"modalidade\": 3,\r\n        \"valorPerc\": \"1.00\"\r\n    },\r\n    \"juros\": {\r\n        \"modalidade\": 1,\r\n        \"valorPerc\": \"0.25\"\r\n    },\r\n    \"multa\": {\r\n        \"modalidade\": 2,\r\n        \"valorPerc\": \"2.00\"\r\n    }\r\n  },\r\n  \"chave\": \"5f84a4c5-c5cb-4599-9f13-7eb4d419dacc\",\r\n  \"solicitacaoPagador\": \"Informe o número ou identificador do pedido.\",\r\n  \"infoAdicionais\": [\r\n      {\r\n      \"nome\": \"Campo 1\",\r\n      \"valor\": \"Informação Adicional1 do PSP-Recebedor\"\r\n    }\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/cobv/:txid",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"cobv",
+										":txid"
+									],
+									"variable": [
+										{
+											"key": "txid",
+											"value": "7978c0c97ea847e78e8849634473c1f1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/split/cobv/:txid/vinculo/:splitConfigId",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/split/cobv/:txid/vinculo/:splitConfigId",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"split",
+										"cobv",
+										":txid",
+										"vinculo",
+										":splitConfigId"
+									],
+									"variable": [
+										{
+											"key": "txid",
+											"value": "7978c0c97ea847e78e8849634473c1f1"
+										},
+										{
+											"key": "splitConfigId",
+											"value": "6aeddee74dd1a890c0ace71f53f70001"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/split/cobv/:txid",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/split/cobv/:txid",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"split",
+										"cobv",
+										":txid"
+									],
+									"variable": [
+										{
+											"key": "txid",
+											"value": "7978c0c97ea847e78e8849634473c1f1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/split/cobv/:txid/vinculo",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/split/cobv/:txid/vinculo/",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"split",
+										"cobv",
+										":txid",
+										"vinculo",
+										""
+									],
+									"variable": [
+										{
+											"key": "txid",
+											"value": "7978c0c97ea847e78e8849634473c1f1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "/v2/webhook/:chave",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							},
+							{
+								"key": "x-skip-mtls-checking",
+								"value": "false",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"webhookUrl\": \"https://exemplo-pix/webhook\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/webhook/:chave",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"webhook",
+								":chave"
+							],
+							"variable": [
+								{
+									"key": "chave",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/gn/webhook/reenviar",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tipo\": \"PIX_RECEBIDO\", // PIX_RECEBIDO, PIX_ENVIADO, DEVOLUCAO_RECEBIDA, DEVOLUCAO_ENVIADA\r\n  \"e2eids\": [\r\n    \"E09089356202412261300API229e5352\",\r\n    \"E09089356202412261300API3149af57\"\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/gn/webhook/reenviar",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"gn",
+								"webhook",
+								"reenviar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/webhook/:chave",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/webhook/:chave",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"webhook",
+								":chave"
+							],
+							"variable": [
+								{
+									"key": "chave",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/webhook",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/webhook/?inicio=2020-10-22T16:01:35Z&fim=2020-10-23T16:01:35Z",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"webhook",
+								""
+							],
+							"query": [
+								{
+									"key": "inicio",
+									"value": "2020-10-22T16:01:35Z"
+								},
+								{
+									"key": "fim",
+									"value": "2020-10-23T16:01:35Z"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v2/webhook/:chave",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{Authorization}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://pix-h.api.efipay.com.br/v2/webhook/:chave",
+							"protocol": "https",
+							"host": [
+								"pix-h",
+								"api",
+								"efipay",
+								"com",
+								"br"
+							],
+							"path": [
+								"v2",
+								"webhook",
+								":chave"
+							],
+							"variable": [
+								{
+									"key": "chave",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Endpoints exclusivos Efí",
+			"item": [
+				{
+					"name": "Chave",
+					"item": [
+						{
+							"name": "/v2/gn/evp",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/evp",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"evp"
+									]
+								},
+								"description": "Endpoint para criar uma chave aleatória. "
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/evp",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/evp",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"evp"
+									]
+								},
+								"description": "Endpoint para consultar chaves aleatórias. "
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/evp/:chave",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/evp/:chave",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"evp",
+										":chave"
+									],
+									"variable": [
+										{
+											"key": "chave",
+											"value": "00000000-0000-0000-0000-000000000000"
+										}
+									]
+								},
+								"description": "Endpoint para remover chave aleatória. "
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Conta",
+					"item": [
+						{
+							"name": "/v2/gn/saldo",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/saldo",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"saldo"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/config",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"pix\": {\r\n        \"receberSemChave\": true,\r\n        \"chaves\": {\r\n            \"355e4568-e89b-1243-a456-006655440001\": {\r\n                \"recebimento\": {\r\n                    \"txidObrigatorio\": false,\r\n                    \"recusarTipoPessoa\": \"PF\",\r\n                    \"qrCodeEstatico\": {\r\n                        \"recusarTodos\": false\r\n                    },\r\n                    \"documentoPagadorIgualDevedor\": true,\r\n                    \"webhook\": {\r\n                        \"notificacao\": {\r\n                            \"tarifa\": true,\r\n                            \"pagador\": true\r\n                        },\r\n                        \"notificar\": {\r\n                            \"pixSemTxid\": false\r\n                        }\r\n                    }\r\n                },\r\n                \"envio\": {\r\n                    \"webhook\": {\r\n                        \"notificacao\": {\r\n                            \"tarifa\": true,\r\n                            \"favorecido\": true\r\n                        }\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/config",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"config"
+									]
+								},
+								"description": "Endpoint para configuração do serviço de recebimento acerca do Pix."
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/config",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/config",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"config"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Extrato de conciliação",
+					"item": [
+						{
+							"name": "/v2/gn/relatorios/extrato-conciliacao",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"dataMovimento\": \"2022-04-24\",\r\n    \"tipoRegistros\": {\r\n        \"pixRecebido\": true,\r\n        \"pixDevolucaoEnviada\": false,\r\n        \"tarifaPixRecebido\": true,\r\n        \"pixEnviadoChave\": true,\r\n        \"pixEnviadoDadosBancarios\": false,\r\n        \"pixDevolucaoRecebida\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/relatorios/extrato-conciliacao",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"relatorios",
+										"extrato-conciliacao"
+									]
+								},
+								"description": "Endpoint para solicitar estrato de conciliação."
+							},
+							"response": []
+						},
+						{
+							"name": "v2/gn/relatorios/:id",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/relatorios/:id",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"relatorios",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Med",
+					"item": [
+						{
+							"name": "/v2/gn/infracoes",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/infracoes?inicio=2024-06-01T16:01:35Z&fim=2024-06-30T16:01:35Z",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"infracoes"
+									],
+									"query": [
+										{
+											"key": "inicio",
+											"value": "2024-06-01T16:01:35Z"
+										},
+										{
+											"key": "fim",
+											"value": "2024-06-30T16:01:35Z"
+										}
+									]
+								},
+								"description": "Endpoint para listar infrações MED da conta"
+							},
+							"response": []
+						},
+						{
+							"name": "/v2/gn/infracoes/:idInfracao/defesa",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "{{Authorization}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"analise\": \"aceito\",\r\n  \"justificativa\": \"Justificativa\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://pix-h.api.efipay.com.br/v2/gn/infracoes/:idInfracao/defesa",
+									"protocol": "https",
+									"host": [
+										"pix-h",
+										"api",
+										"efipay",
+										"com",
+										"br"
+									],
+									"path": [
+										"v2",
+										"gn",
+										"infracoes",
+										":idInfracao",
+										"defesa"
+									],
+									"variable": [
+										{
+											"key": "idInfracao",
+											"value": "00000000-0000-0000-0000-000000000000"
+										}
+									]
+								},
+								"description": "Endpoint para submeter defesa de infração MED"
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url-pix-api",
+			"value": "http://localhost:3001",
+			"type": "string"
+		},
+		{
+			"key": "e2eId",
+			"value": "E12345678202009091221ABCDEF12345",
+			"type": "string"
+		},
+		{
+			"key": "devolutionCustomId",
+			"value": "CD23543agp",
+			"type": "string"
+		},
+		{
+			"key": "x-account-code",
+			"value": "d74543e3a0fe7a7836a88dd97a281804",
+			"type": "string"
+		}
+	]
+}

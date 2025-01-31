@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wesley Alemão Prêmios</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1f2b38;
+            color: #ffffff;
+        }
+        header {
+            background-color: #000000;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        header img {
+            height: 40px;
+        }
+        .container-edicao33 {
+    width: 85%;
+    max-width: 400px;
+    margin: 20px auto;
+    background-color: #1f2b38; /* Cor de fundo para destacá-lo */
+    border-radius: 10px;
+    padding: 20px;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Adiciona uma sombra */
+}
+        .container {
+            padding: 20px;
+        }
+        .info-box {
+    display: flex;
+    justify-content: space-between; /* Distribui o conteúdo nas extremidades */
+    align-items: center; /* Alinha verticalmente os itens */
+    background-color: #2a3b4c;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.left-content,
+.right-content {
+    display: flex;
+    flex-direction: row; /* Organiza o conteúdo horizontalmente */
+    align-items: center; /* Alinha verticalmente os itens */
+}
+
+.date-box {
+    background-color: #d3d3d3; /* Cor de fundo cinza escuro */
+    padding: 3px 8px; /* Adiciona espaçamento interno */
+    border-radius: 4px; /* Bordas arredondadas */
+}
+
+.info-box span {
+    font-size: 14px; /* Tamanho do texto maior */
+    color: #fff; /* Cor do texto */
+    margin-right: 10px; /* Espaço entre o span e o contêiner */
+}
+
+.info-box .strong-container {
+    display: flex;
+    align-items: center; /* Alinha o conteúdo do contêiner */
+}
+.info-box strong {
+    font-size: 12px; /* Tamanho do texto menor */
+    color: #fff; /* Cor do texto */
+    border: 1px solid #ccc; /* Borda ao redor do quadro */
+    border-radius: 8px; /* Bordas arredondadas */
+    padding: 4px; /* Aumente o padding para mais espaço dentro do quadro */
+    background-color: #1f2b38; /* Cor do retângulo */
+}
+	.title-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .title-buttons button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .title-buttons button:first-child {
+            background-color: #394855;
+            color: #ffffff;
+        }
+        .title-buttons button:last-child {
+            background-color: #505d6b;
+            color: #ffffff;
+        }        
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background-color: #2a3b4c;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+        }
+        .card.popular {
+            border: 2px solid #ff6666;
+            background-color: #ffe5e5;
+            color: #000000;
+        }
+        .card .value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .card .label {
+            font-size: 14px;
+        }
+        .footer-right {
+        float: right;
+        margin: 0;
+        font-size: 12px;
+}
+        .footer-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #1f2b38; /* Cor do retângulo */
+    border: 1px solid #ccc;
+    border-radius: 8px; /* Bordas arredondadas */
+    padding: 5px;
+    width: fit-content; /* Adapta a largura ao conteúdo */
+    margin: 0 auto; /* Centraliza horizontalmente */
+    width: 350px; 
+}
+.footer-buttons input {
+    width: 80px;
+    height: 40px;
+    text-align: center;
+    font-size: 18px;
+    background-color: transparent; /* Transparente para combinar com o container */
+    color: white; /* Cor do texto */
+}
+
+.footer-buttons button {
+    width: 40px; /* Botões menores */
+    height: 40px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: transparent; /* Transparente para combinar com o container */
+    color: white;
+    border: none; /* Remove a borda do botão */
+    border-radius: 50%; /* Opcional: para deixar os botões redondos */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.footer-buttons button:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Efeito de hover */
+}
+        footer {
+            background-color: #1f2b38;
+            padding: 10px;
+            border-radius: 8px;
+            border-bottom: 2px dotted #d3d3d3; /* Linha pontilhada de cor vermelho escuro */
+            margin-bottom: 10px; /* Espaço entre os campos */
+            padding-bottom: 10px; /* Espaço interno inferior */
+        }
+        footer .winner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        footer .winner div {
+            text-align: left;
+        }
+        footer .winner div span {
+            display: block;
+            font-size: 16px;
+        }
+        footer .winner div strong {
+            font-size: 10px;
+        }
+        footer .counter {
+            background-color: #transparent;
+            color: red;
+            border: 1px solid red; /* Borda vermelha ao redor do texto */
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+	.container-raio {
+            width: 85%;
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #1f2b38;
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+	.icon {
+            color: #ffc107; /* Cor dourada semelhante ao raio da imagem */
+            font-size: 18px;
+            margin-right: 8px;
+        }
+	.title2 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-left: -10px;
+	}
+	.subtitle2 {
+            font-size: 14px;
+            color: #808080; /* Cor acinzentada para o subtítulo */
+	    margin-left: 20px;
+	}
+	.content img {
+    width: 120%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto;
+    position: relative;
+    top: -45px; /* Ajuste fino para aproximar a imagem */
+    left: -10%;
+}
+	.campaign-title,
+        .campaign-description,
+        .footer {
+            text-align: left;
+	    margin-left: -10px;
+        }
+        .campaign-title {
+            font-size: 16px;
+            margin-top: -10px;
+            line-height: 1.4;
+        }
+        .campaign-description {
+            font-size: 14px;
+            margin: 10px 0;
+	    margin-left: -10px;
+        }
+        .cta {
+            display: inline-block;
+            background-color: red;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 3px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            animation: blink 1s infinite;
+	    margin-left: -10px;
+        }
+	@keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+	.menu-button {
+        font-size: 24px;
+        background: none;
+        color: white;
+        border: none;
+        cursor: pointer;
+        position: absolute;
+        right: 21px; /* Mantém o botão no canto direito */
+        top: 15px; /* Ajusta verticalmente */
+    }
+
+    .menu {
+    display: none; /* Inicialmente oculto */
+    position: fixed;
+    top: 50px; /* Abaixo do topo preto */
+    left: 0;
+    width: 100%;
+    height: calc(100% - 50px); /* O restante da tela */
+    background-color: #000;
+    z-index: 1000; /* Garante que o menu esteja acima de outros elementos */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.menu .close-button {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    background: none;
+    color: white;
+    font-size: 24px;
+    border: none;
+    cursor: pointer;
+}
+
+        .menu a {
+    display: block; /* Cada item ocupa uma linha */
+    padding: 15px 20px; /* Espaçamento interno */
+    color: white; /* Cor do texto */
+    text-decoration: none; /* Remove sublinhado */
+    font-size: 24px; /* Tamanho da fonte */
+    text-align: center; /* Centraliza o texto */
+    width: 100%; /* Cada item ocupa a largura total */
+    margin-left: -20px; /* Move os itens para a esquerda */
+}
+
+        .menu a:hover {
+            background-color: #444;
+        }
+	        .title-buttons {
+            margin: 20px;
+        }
+
+        #prizeModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #prizeModal img {
+            max-width: 80%;
+            max-height: 80%;
+            border: 5px solid #fff;
+            border-radius: 10px;
+        }
+
+        #closeModalButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #closeModalButton:hover {
+            background-color: #ff1a1a;
+        }
+	.modal {
+    display: none; /* Inicialmente oculto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fundo semitransparente */
+    justify-content: center;
+    align-items: center;
+    z-index: 1001; /* Garante que o modal esteja acima de outros elementos */
+}
+
+.modal-content {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    width: 60%;
+    max-width: 400px;
+}
+
+.close-button {
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+}
+
+.close-button:hover {
+    color: red;
+}
+	#calculateButton {
+    margin: 20px auto; /* Define margem automática para centralizar horizontalmente */
+    display: block;    /* Garante que o botão seja tratado como um bloco */
+    background-color: #ff3b3b;
+    color: white;
+    text-align: center;
+    font-size: 20px; /* Aumenta o tamanho da fonte */
+    padding: 15px 30px; /* Aumenta o espaço interno */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 380px; /* Ou defina uma largura fixa, como 250px, se quiser */
+}
+		#entrarButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #FF3030; /* Cor do retângulo */
+    font-size: 19px; /* Define tamanho do texto */
+    font-weight: bold;
+    color: #FFFFFF; /* Texto branco */
+    border: 1px solid #000000;
+    border-radius: 8px; /* Bordas arredondadas */
+    padding: 5px;
+    width: 90%; /* Adapta a largura ao conteúdo */
+    margin: 0 auto; /* Centraliza horizontalmente */
+    width: 300px;
+}
+		#sairButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #FF3030; /* Cor do retângulo */
+    font-size: 19px; /* Define tamanho do texto */
+    font-weight: bold;
+    color: #FFFFFF; /* Texto branco */
+    border: 1px solid #000000;
+    border-radius: 8px; /* Bordas arredondadas */
+    padding: 5px;
+    width: 300px; /* Largura fixa */
+    margin: 0 auto; /* Centraliza horizontalmente */
+}
+	#userPhone {
+        display: none;
+        margin-top: 20px;
+	margin-right: 10px;
+ /* Ajuste o valor para mover mais ou menos para baixo */
+    }
+	.centralizado {
+  text-align: center;
+}
+	
+	.title-buttons {
+    display: flex;
+    justify-content: center; /* Centraliza os itens dentro do contêiner */
+    gap: 10px;
+    margin-bottom: 20px;
+}
+        .title-buttons button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .footer-buttons input {
+            width: 60px;
+            text-align: center;
+        }
+	#toggleButton {
+    display: block; /* Faz o botão ser um bloco, ocupando a largura disponível */
+    margin: 0 auto; /* Centraliza o botão */
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: 2px solid #007bff;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    margin-bottom: 20px;
+}
+        /* Estilo do botão quando passa o mouse */
+        #toggleButton:hover {
+            background-color: #0056b3;
+        }
+
+        /* Texto oculto que será exibido/ocultado */
+        #description {
+            display: none;
+            margin-top: 20px;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #description p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+	.banner img {
+    width: 100%; /* Ocupa toda a largura da tela */
+    height: auto; /* Mantém a proporção da imagem */
+    display: block; /* Remove qualquer espaço em branco abaixo da imagem */
+    margin: 0; /* Remove margens */
+    padding: 0; /* Remove preenchimentos */
+}
+	.banner-container {
+    text-align: center; /* Centraliza todo o conteúdo do contêiner */
+    margin-top: 20px; /* Adiciona espaço acima do contêiner */
+}
+
+.banner {
+    width: 100%; /* O banner ocupa toda a largura da tela */
+    height: auto; /* Mantém a proporção da imagem */
+    display: block; /* Remove margens automáticas */
+}
+
+.text-box {
+    margin-top: 10px; /* Espaço entre o banner e o texto */
+    background-color: #1f2b38; /* Cor de fundo da caixa */
+    color: #D3D3D3; /* Cor do texto */
+    padding: 10px; /* Espaço interno da caixa */
+    border-radius: 8px; /* Bordas arredondadas */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Sombra para destacar */
+    font-size: 16px; /* Tamanho do texto */
+    max-width: 90%; /* Limita a largura da caixa de texto */
+    margin-left: auto; /* Centraliza horizontalmente */
+    margin-right: auto;
+}
+	/* Modal Style */
+.modal {
+    display: none; /* Inicialmente oculto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fundo semitransparente */
+    justify-content: center;
+    align-items: center;
+    z-index: 1001; /* Garante que o modal esteja acima de outros elementos */
+}
+
+.modal-content {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    width: 60%;
+    max-width: 400px;
+}
+
+.close-button {
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+}
+
+.close-button:hover {
+    color: red;
+}
+	#calculateButton {
+    margin: 20px auto; /* Define margem automática para centralizar horizontalmente */
+    display: block;    /* Garante que o botão seja tratado como um bloco */
+    background-color: #ff3b3b;
+    color: white;
+    text-align: center;
+    font-size: 20px; /* Aumenta o tamanho da fonte */
+    padding: 15px 30px; /* Aumenta o espaço interno */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 380px; /* Ou defina uma largura fixa, como 250px, se quiser */
+}
+
+#calculateButton:hover {
+    background-color: #e33434;
+}
+
+	#totalValue {
+    flex-grow: 1; /* Faz o campo input ocupar o espaço restante */
+    width: 100%; /* Garante que ele ocupe o espaço disponível */
+    font-size: 18px; /* Aumenta o tamanho do texto */
+    padding: 8px 12px; /* Adiciona espaçamento interno */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+    background-color: #1f2b38;
+    color: white; /* Define a cor do texto como branca */
+}
+
+#decrement, #increment {
+    width: 40px; /* Define largura fixa menor */
+    height: 40px; /* Define altura fixa */
+    font-size: 16px; /* Define tamanho do texto */
+    background-color: #1f2b38;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    border-radius: 50%; /* Botões redondos */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+#decrement:hover, #increment:hover {
+    background-color: #1f2b38; /* Cor de fundo ao passar o mouse */
+}
+	#pix-container {
+  text-align: center;
+}
+	#pixKey {
+    text-align: center;
+    word-wrap: break-word; /* Compatibilidade com navegadores antigos */
+    overflow-wrap: break-word; /* Compatível com navegadores modernos */
+    margin: 0 auto; /* Centraliza horizontalmente */
+    max-width: 90%; /* Limita a largura para evitar que ultrapasse */
+}
+	#pixQrCode {
+    display: flex; /* Para ativar o alinhamento flexível */
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center; /* Centraliza verticalmente */
+    margin: 20px auto; /* Espaçamento automático para centralizar em relação ao restante */
+    text-align: center; /* Garante que o conteúdo do texto também esteja centralizado */
+    max-width: 100%; /* Evita que a imagem ultrapasse a largura do contêiner */
+}
+	#selectedTitles {
+  text-align: center;
+  margin: 10px 0; /* Espaçamento entre os elementos */
+}
+	           
+    </style>
+</head>
+<body>
+    <header>
+    <div class="header">
+        <button class="menu-button" id="menuButton">☰</button>
+        <img src="logo.png" alt="Logo Wesley Alemão" class="logo">
+        <div class="menu" id="menu">
+            <div id="userPhone" style="display: none; margin-left: 5px;">
+                <img src="perfil.png" alt="Perfil" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+                <span id="userPhoneText"></span>
+            </div>
+            <a href="index.html">🏠 Início</a>
+            <a href="campanhas.html">⚡ Campanhas</a>
+            <a href="#numeros">📋 Meus Títulos</a>
+            <a href="ganhadores.html">🎉 Ganhadores</a>
+            <a href="entrar%20em%20contato.html">📧 Entre em contato</a>
+            <a href="termos.html">📜 Termos de uso</a>
+            <button id="entrarButton">Entrar</button>
+            <button id="sairButton" style="display: none;">Sair</button>
+        </div>
+    </div>
+</header>
+        <!-- Modal -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" id="closeButton">×</span>
+                <p>Você ainda não adquiriu nenhum Título</p>
+                <button id="showPhoneButton">Informar Telefone</button>
+                <div id="phoneForm" style="display: none;">
+                    <input type="text" id="phoneInput" placeholder="(11) 11111-1111" maxlength="15" />
+                    <button id="continueButton">Continuar</button>
+                </div>
+            </div>
+        </div>
+    <script>
+        const modal = document.getElementById('modal');
+const closeButton = document.getElementById('closeButton');
+const menuLink = document.querySelector('a[href="#numeros"]');
+const showPhoneButton = document.getElementById('showPhoneButton');
+const phoneForm = document.getElementById('phoneForm');
+const phoneInput = document.getElementById('phoneInput');
+const entrarButton = document.getElementById('entrarButton');
+const sairButton = document.getElementById('sairButton');
+const modalMessage = document.querySelector('.modal-content p');
+const userPhone = document.getElementById('userPhone');
+const userPhoneText = document.getElementById('userPhoneText');
+
+// Inicialmente, ocultar o botão "Informar Telefone" e o formulário de telefone
+showPhoneButton.style.display = 'none';
+phoneForm.style.display = 'none';
+
+// Função para abrir o modal ao clicar no link "Meus Títulos"
+menuLink.addEventListener('click', function(event) {
+    event.preventDefault();
+    modal.style.display = 'flex';
+    modalMessage.style.display = 'block';
+    showPhoneButton.style.display = 'none';
+    phoneForm.style.display = 'none';
+});
+
+// Função para abrir o modal ao clicar no botão "Entrar"
+entrarButton.addEventListener('click', function() {
+    modal.style.display = 'flex';
+    modalMessage.style.display = 'none';
+    showPhoneButton.style.display = 'block';
+    phoneForm.style.display = 'none';
+});
+
+// Função para exibir o formulário de telefone
+showPhoneButton.addEventListener('click', function() {
+    phoneForm.style.display = 'block';
+});
+
+// Função para fechar o modal
+closeButton.addEventListener('click', function() {
+    modal.style.display = 'none';
+});
+
+window.addEventListener('click', function(event) {
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// Máscara para o campo de telefone
+phoneInput.addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 11) {
+        value = value.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+    } else if (value.length >= 6) {
+        value = value.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+    } else if (value.length >= 3) {
+        value = value.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+    } else if (value.length > 0) {
+        value = value.replace(/^(\d{0,2})$/, '($1');
+    }
+    e.target.value = value;
+});
+
+// Função para capturar o número de telefone e atualizar o menu
+const continueButton = document.getElementById('continueButton');
+
+continueButton.addEventListener('click', function() {
+    const phoneNumber = phoneInput.value.trim();
+
+    if (phoneNumber) {
+        // Armazenar o número no localStorage
+        localStorage.setItem('userPhone', phoneNumber);
+
+        userPhoneText.textContent = `Usuário: ${phoneNumber}`;
+        userPhone.style.display = 'flex';
+        entrarButton.style.display = 'none';
+        sairButton.style.display = 'block';
+        modal.style.display = 'none';
+    } else {
+        alert('Por favor, informe um número de telefone válido.');
+    }
+});
+
+// Função para remover o usuário e mostrar o botão "Entrar"
+sairButton.addEventListener('click', function() {
+    // Limpar o item no localStorage
+    localStorage.removeItem('userPhone');
+    
+    // Atualizar a interface
+    userPhone.style.display = 'none';
+    entrarButton.style.display = 'block';
+    sairButton.style.display = 'none';
+});
+
+// Menu dropdown
+const menuButton = document.getElementById('menuButton');
+const menu = document.getElementById('menu');
+
+menuButton.addEventListener('click', () => {
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+});
+
+document.addEventListener('click', (event) => {
+    if (!menu.contains(event.target) && event.target !== menuButton) {
+        menu.style.display = 'none';
+    }
+});
+
+// Recuperar o número de telefone armazenado ao carregar a página
+window.addEventListener('load', function() {
+    const storedPhone = localStorage.getItem('userPhone');  // Recupera o número de telefone do localStorage
+
+    if (storedPhone) {
+        // Se o número estiver no localStorage, exiba as informações do usuário
+        userPhoneText.textContent = `Usuário: ${storedPhone}`;
+        userPhone.style.display = 'flex';
+        entrarButton.style.display = 'none';
+        sairButton.style.display = 'block';
+    }
+});
+    </script>
+
+    </header>
+		<body>
+    <div class="container-raio">
+        <div class="icon">⚡</div>
+        <div class="text">
+            <div class="title2">Campanhas</div>
+        </div>
+    </div>
+</body>
+<div class="container-edicao33">    
+    <div class="custom-container">
+        <div class="content">
+            <img src="premio.png" alt="Prêmio">
+            <h2 class="campaign-title">Edição 33 - 50 M!W no Pataco + 30 Títulos premiados de 500 M!W</h2>
+            <p class="campaign-description">Participe e concorra!</p>
+            <p class="footer footer-bold">15414.600117/2025-60</p>
+            <button class="cta">Adquira Já!</button>
+            <p class="footer footer-right">📅 08/01/2025 às 18:55</p>
+        </div>
+    </div>
+</div>
+    <div class="container">
+    <div class="info-box">
+        <div class="left-content">
+            <span>Sorteio</span>
+            <div class="strong-container">
+                <strong>08/01/2025 ÀS 18:55</strong>
+            </div>
+        </div>
+        <div class="right-content">
+            <span>Por apenas</span>
+            <div class="strong-container">
+                <strong>R$ 0,06</strong>
+            </div>
+        </div>
+    </div>
+        <div class="title-buttons">
+            <button id="showPrizesButton">Prêmios</button>
+        </div>
+    <!-- Modal para exibir a imagem -->
+    <div id="prizeModal">
+        <button id="closeModalButton">Fechar</button>
+        <img src="premio.png" alt="Imagem do Prêmio">
+    </div>
+
+    <script>
+        const showPrizesButton = document.getElementById('showPrizesButton');
+        const prizeModal = document.getElementById('prizeModal');
+        const closeModalButton = document.getElementById('closeModalButton');
+
+        // Exibe o modal com a imagem
+        showPrizesButton.addEventListener('click', () => {
+            prizeModal.style.display = 'flex';
+        });
+	
+        // Fecha o modal ao clicar no botão de fechar
+        closeModalButton.addEventListener('click', () => {
+            prizeModal.style.display = 'none';
+        });
+
+        // Fecha o modal ao clicar fora da imagem
+        prizeModal.addEventListener('click', (event) => {
+    if (event.target === prizeModal) {
+        prizeModal.style.display = 'none';
+    }
+});
+	</script>
+        <h2 class="centralizado">Selecione a quantidade de títulos</h2>
+<!-- Cards Section -->
+<div class="cards">
+    <div class="card" data-value="34">    
+        <div class="value">+34</div>
+        <div class="label">SELECIONAR</div>
+    </div>
+    <div class="card popular" data-value="100">    
+        <div class="value">+100</div>
+        <div class="label">SELECIONAR</div>
+    </div>
+    <div class="card" data-value="150">    
+        <div class="value">+150</div>
+        <div class="label">SELECIONAR</div>
+    </div>
+    <div class="card" data-value="400">    
+        <div class="value">+400</div>
+        <div class="label">SELECIONAR</div>
+    </div>
+    <div class="card" data-value="800">    
+        <div class="value">+800</div>
+        <div class="label">SELECIONAR</div>
+    </div>
+    <div class="card" data-value="1000">    
+        <div class="value">+1000</div>
+        <div class="label">SELECIONAR</div>
+    </div>
+</div>    
+
+<!-- Campo para somar o valor -->
+<div class="footer-buttons">
+    <!-- Adicionando o id "totalValue" no campo de entrada -->
+      <button id="decrement">-</button>
+        <input id="totalValue" type="number" value="34" min="1">
+        <button id="increment">+</button>
+    </div>
+    <button id="calculateButton">Quero participar R$ 2,04</button>
+	<div id="pixQrCode"></div>
+	<div id="pixKey"></div>
+	<div id="selectedTitles"></div>
+
+	<div id="pix-container">
+    <div id="pix-box">
+        <div id="pixKey" style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; width: 100%; margin: 0 auto;"></div>
+    </div>
+    <button id="copy-pix-key-button" style="display:none;">Copiar chave Pix</button>
+</div>
+
+<div id="titulo-container" style="display:none;">
+    <h3>Títulos Disponíveis:</h3>
+    <ul id="titulo-list">
+        <!-- Os títulos serão listados aqui -->
+    </ul>
+</div>
+
+<script>
+  // Selecionando os elementos principais
+  const decrementButton = document.getElementById("decrement");
+  const incrementButton = document.getElementById("increment");
+  const totalValueInput = document.getElementById("totalValue");
+  const calculateButton = document.getElementById("calculateButton");
+  const pixKeyDiv = document.getElementById("pixKey");
+  const pixQrCode = document.getElementById("pixQrCode");
+  const selectedTitlesDiv = document.getElementById("selectedTitles");
+  const copyButton = document.getElementById('copy-pix-key-button');
+  const cards = document.querySelectorAll('.card');
+
+  let totalValue = parseFloat(totalValueInput.value) || 1;
+
+  console.log("Valor total inicial:", totalValue);
+
+  // Atualiza o botão inicialmente
+  updateButton();
+
+  // Função para atualizar o botão com o valor correto
+  function updateButton() {
+    const pricePerNumber = 0.06;
+    const totalAmount = (totalValue * pricePerNumber).toFixed(2);
+    calculateButton.textContent = `Quero participar R$ ${totalAmount}`;
+    console.log("Botão de calcular atualizado:", totalAmount);
+  }
+
+  // Adicionar evento de clique para os cards
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      console.log("Card clicado.");
+
+      // Obter o valor do card clicado
+      const selectedValue = parseFloat(card.getAttribute('data-value')) || 0;
+
+      // Atualizar o valor total
+      totalValue += selectedValue;
+      totalValueInput.value = totalValue;
+      updateButton();
+
+      // Adicionar feedback visual
+      cards.forEach(c => c.classList.remove('selected')); // Remover seleção de outros cards
+      card.classList.add('selected'); // Adicionar classe ao card selecionado
+    });
+  });
+
+  // Evento para decrementar o valor
+  decrementButton.addEventListener("click", () => {
+    console.log("Botão de decremento clicado.");
+    if (totalValue > 1) {
+      totalValue--;
+      totalValueInput.value = totalValue;
+      updateButton();
+    }
+  });
+
+  // Evento para incrementar o valor
+  incrementButton.addEventListener("click", () => {
+    console.log("Botão de incremento clicado.");
+    totalValue++;
+    totalValueInput.value = totalValue;
+    updateButton();
+  });
+
+  // Atualiza o valor do botão sempre que o valor do input mudar
+  totalValueInput.addEventListener("input", () => {
+    console.log("Valor do input alterado.");
+    totalValue = parseFloat(totalValueInput.value) || 1;
+    updateButton();
+  });
+
+  // Função para gerar os títulos
+  function generateTitles(totalValue) {
+    console.log("Gerando títulos...");
+    const titles = [];
+    for (let i = 1; i <= totalValue; i++) {
+      let titleNumber = i.toString().padStart(7, "0");
+      if (titleNumber === "0000009" || titleNumber === "0000010") {
+        continue;
+      }
+      titles.push(`Título ${titleNumber}`);
+    }
+    console.log("Títulos gerados:", titles);
+    return titles;
+  }
+
+  // Verificação de login e envio de requisição para gerar chave Pix
+  calculateButton.addEventListener("click", async () => {
+    console.log("Botão de calcular clicado.");
+
+    const pricePerNumber = 0.06;
+    const totalAmount = (totalValue * pricePerNumber).toFixed(2);
+
+    console.log("Total calculado para chave Pix:", totalAmount);
+
+    try {
+      console.log("Enviando requisição para gerar chave Pix...");
+      const response = await fetch("https://wesleyalemaopremios-com-br.onrender.com/gerar-chave-pix", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ valor: parseFloat(totalAmount) }),
+      });
+
+      const data = await response.json();
+      console.log("Resposta da geração da chave Pix:", data);
+
+      if (data.txid && data.qrcode && data.imagemQrcode) {
+        // Exibir a chave Pix
+        pixKeyDiv.textContent = `${data.qrcode}`;
+
+        // Exibir QR Code
+        const qrCodeImage = document.createElement("img");
+        qrCodeImage.src = data.imagemQrcode;
+        qrCodeImage.alt = "QR Code Pix";
+        pixQrCode.innerHTML = "";
+        pixQrCode.appendChild(qrCodeImage);
+        console.log("QR Code gerado com sucesso.");
+
+        // Exibir o botão para copiar a chave Pix
+        copyButton.style.display = "inline-block";
+        console.log("Botão de copiar chave Pix exibido.");
+
+        // Verificação do pagamento
+        setInterval(async () => {
+          console.log("Verificando pagamento...");
+          try {
+            const paymentStatusResponse = await fetch("https://wesleyalemaopremios-com-br.onrender.com/verificar-pagamento", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ txid: data.txid }),
+            });
+
+            const paymentStatusData = await paymentStatusResponse.json();
+            console.log("Status do pagamento:", paymentStatusData);
+
+            if (paymentStatusData.status === "CONFIRMED") {
+              console.log("Pagamento confirmado!");
+              const titles = generateTitles(totalValue);
+              selectedTitlesDiv.innerHTML = `<h3>Títulos gerados:</h3><ul>${titles.map(title => `<li>${title}</li>`).join("")}</ul>`;
+              selectedTitlesDiv.style.display = "block";
+            } else {
+              console.log("Pagamento não confirmado.");
+            }
+          } catch (error) {
+            console.error("Erro ao verificar o pagamento:", error);
+          }
+        }, 5000);
+      } else {
+        console.log("Erro ao gerar chave Pix ou QR Code.");
+        pixKeyDiv.textContent = "Erro ao gerar a chave Pix.";
+      }
+    } catch (error) {
+      console.error("Erro ao conectar com o servidor:", error);
+      pixKeyDiv.textContent = "Erro ao conectar com o servidor.";
+    }
+  });
+
+  // Evento para copiar a chave Pix
+  if (copyButton) {
+    copyButton.addEventListener('click', function () {
+      console.log("Botão de copiar clicado.");
+      const pixKey = pixKeyDiv.textContent;
+      navigator.clipboard.writeText(pixKey).then(function () {
+        alert("Chave Pix copiada com sucesso!");
+        console.log("Chave Pix copiada com sucesso.");
+      }).catch(function (err) {
+        console.error("Erro ao copiar a chave Pix:", err);
+      });
+    });
+  }
+</script>
+
+
+
+
+<br>
+
+	<!-- Botão para abrir/fechar a descrição -->
+<button id="toggleButton">Descrição/Regulamento</button>
+<!-- Texto oculto que será exibido/ocultado ao clicar no botão -->
+<div id="description" style="display: none;">    
+    <p>
+        O WESLEY ALEMÃO PRÊMIOS V.33 é um Título de Capitalização da Modalidade Filantropia Premiável, de pagamento único, emitido pela VIA CAPITALIZAÇÃO S.A. (VIACAP), Sociedade de Capitalização inscrita no CNPJ sob o Número 88.076.302/0001-94, com sede na Av. Carlos Gomes, 222, Conj. 901, Bairro Boa Vista, Porto Alegre/RS, CEP 90480-000. A contratação deste título é apropriada principalmente na hipótese de o consumidor estar interessado em contribuir com entidades beneficentes de assistência sociais, certificadas nos termos da legislação vigente, e participar de sorteio(s). Ao adquirir o WESLEY ALEMÃO PRÊMIOS V.33 você concorrerá aos sorteios previstos neste Título e 100% do direito de resgate do seu Título será revertido ao INSTITUTO PLURAL, Entidade Filantrópica inscrita no CNPJ sob o Número 12.671.638/0001-33, com sede na Avenida 15 de Novembro, 62, Centro, Cornélio Procópio/PR, CEP 86.300-000, para utilização dos recursos em seus projetos de assistência social e nas diversas atividades da entidade, caso não haja comunicação contrária à Sociedade de Capitalização. Conheça mais sobre o trabalho e os projetos do INSTITUTO PLURAL através do site www.institutoplural.org.br. É obrigatório o preenchimento correto da Ficha de Cadastro no momento de aquisição do título. Antes de contratar, consulte previamente as Condições Gerais do Título, cuja versão completa está disponível para consulta no site www.susep.gov.br. Este Título de Capitalização foi aprovado pela Superintendência de Seguros Privados – SUSEP – através do Processo SUSEP nº 15414.639545/2024-00. 1 – SORTEIOS: Ao adquirir o WESLEY ALEMÃO PRÊMIOS V.33 o Subscritor irá concorrer aos Sorteios da Modalidade “Loteria Federal". Você concorre em 1 sorteio apurado com base na extração da Loteria Federal do dia 11/01/2025. Para concorrer aos sorteios previstos nesta modalidade o Título contém impresso 1 Número(s) da Sorte, não repetido(s) na mesma série, compreendido(s) no intervalo entre “0.000.000” e “9.999.999". Para efeito de apuração, ao menos um Número da Sorte impresso no título deverá coincidir, com o número formado pela combinação do primeiro prêmio da extração da Loteria Federal, adicionando-se ao seu final o primeiro e o segundo algarismo do segundo prêmio da Loteria Federal. Regra de Aproximação: Caso a combinação contemplada, apurada na forma, não tenha sido distribuída a um participante será aplicada a seguinte regra de aproximação: será contemplado o participante que possuir o próximo Número da Sorte imediatamente superior ao efetivamente apurado, na forma acima, e assim sucessivamente até que seja identificado um participante contemplado em cada uma das premiações acima. Caso, por qualquer motivo, a Loteria Federal não venha a realizar a extração na data prevista de sorteio, será considerada, para fins do disposto neste Capítulo, a extração seguinte que vier a ser por ela realizada. Caso a Caixa Econômica Federal suspenda definitivamente as extrações da Loteria Federal do Brasil, ou modifique as referidas extrações de forma que não mais coincidam com as regras deste sorteio, ou haja qualquer impedimento à vinculação da Loteria Federal aos sorteios previstos, a VIA Capitalização S.A, num prazo máximo de trinta dias, promoverá o sorteio não realizado com aparelhos próprios e em local de livre acesso ao público, sob fiscalização de auditoria independente e em idênticas condições às previstas originalmente no título, dando prévia e ampla divulgação do fato. Os Títulos sorteados em todas as premiações descritas anteriormente serão resgatados antecipadamente quando da realização do respectivo sorteio e não concorrerão aos próximos sorteios. 2 – SÉRIES E PROBABILIDADES: Os Títulos são ordenados em séries de 10.000.000 unidades e a probabilidade mínima de contemplação, considerando todos os Títulos da série, será igual a uma chance em 10.000.000 para cada um dos sorteios previstos neste Título. O percentual de 43,34334% do valor da contribuição única do Título é destinado à capitalização, que irá gerar um capital mínimo de resgate igual a 43,48215%, ao fim da vigência. O valor de 13,33333% da contribuição única do Título é destinado ao sorteio. Os custos com promoção de distribuição do Título estão abrangidos pela quota de carregamento, que é de 43,32333%, e representam 1% da contribuição única, podendo haver remuneração adicional, de acordo com a performance do produto, conforme previsto em contrato de distribuição. 3 – VIGÊNCIA: A vigência do Título é de 2 meses. 4 – RESGATE: O valor do resgate estará disponível ao Titular do direito de resgate após 2 meses de carência. 5 – DATA, HORA E LOCAL DOS SORTEIOS: Os sorteios serão realizados com base na extração da Loteria Federal do dia 11/01/2025, na hora e local divulgados pela Caixa Econômica Federal. 6 – PRÊMIOS: Para o recebimento do prêmio, quando contemplado, o Subscritor deverá apresentar o Título original contemplado ou o comprovante de aquisição pelo aplicativo/site; RG e CPF válidos; comprovante de residência atualizado e os dados bancários para depósito. O valor dos prêmios descritos é líquido de imposto de renda. A VIACAP pagará a premiação em até 15 (quinze) dias corridos, contados da apresentação da documentação exigida. 7 – DISPOSIÇÕES GERAIS: A aquisição implica automática adesão às Condições Gerais do Título, das quais o Subscritor declara ter tomado ciência previamente a aquisição. Os direitos e obrigações decorrentes deste Título prescrevem no prazo estabelecido na legislação. Na hipótese de extravio do Título, a responsabilidade será exclusivamente do Subscritor. O foro competente para dirimir eventuais questões oriundas do presente Regulamento será o do domicílio do Subscritor. É proibida a venda de título de capitalização a menores de dezesseis anos. A aprovação deste plano pela SUSEP, não implica, por parte da Autarquia, em incentivo ou recomendação à sua aquisição, representando, exclusivamente, sua adequação às normas em vigor. Os dados pessoais acessados em razão da contratação deste título de capitalização serão tradados nos termos da Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Para mais informações consulte o SAC: 0800 740 7819. OUVIDORIA: 0800 8741 505.
+
+PREMIAÇÃO: HONDA/POP 110I ES – 2025- (SUGESTÃO DE USO DO PRÊMIO LÍQUIDO: R$10.000,00).
+    </p>
+</div>
+
+<script>
+    // Selecionando o botão e a descrição
+    const toggleButton = document.getElementById('toggleButton');
+    const description = document.getElementById('description');
+
+    // Adicionando evento de clique ao botão
+    toggleButton.addEventListener('click', function() {
+        // Verifica se a descrição está visível ou oculta
+        if (description.style.display === "none") {
+            description.style.display = "block"; // Exibe o texto
+        } else {
+            description.style.display = "none"; // Oculta o texto
+        }
+    });
+</script>
+<hr>
+	<h2 class="centralizado">🎁 Títulos Premiados</h2>
+    <footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Arnaldo 🏆</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">1.445.142</div>
+            </div>
+        </footer>
+	    <footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Alisson 🏆</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">1.101.094</div>
+            </div>
+        </footer>
+	    <footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Camila 🏆</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">7.514.333</div>
+            </div>
+	</footer>
+	<footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Breno 🏆</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">8.160.081</div>
+            </div>
+	</footer>
+	<footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">2.441.100</div>
+            </div>
+	</footer>
+	<footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">3.355.255</div>
+            </div>
+	</footer>
+	<footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">4.010.298</div>
+            </div>
+	</footer>
+	<footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">5.500.217</div>
+            </div>
+	</footer>
+	<footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">6.180.717</div>
+            </div>
+	</footer>
+	<footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">7.444.318</div>
+            </div>
+	</footer>
+	<footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">9.888.511</div>
+            </div>
+	</footer>
+	<footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">0.005.319</div>
+            </div>
+	</footer>
+    <footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">1.425.999</div>
+            </div>
+	</footer>
+    <footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">2.597.264</div>
+            </div>
+	</footer>
+    <footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">3.357.159</div>
+            </div>
+	</footer>
+    <footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">4.489.632</div>
+            </div>
+	</footer>
+    <footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">5.591.147</div>
+            </div>
+	</footer>
+    <footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">6.772.359</div>
+            </div>
+	</footer>
+    <footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">7.880.111</div>
+            </div>
+	</footer>
+    <footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">8.081.319</div>
+            </div>
+	</footer>
+    <footer>
+            <div class="winner">
+                <div>
+                    <span>Aguardando</span>
+                    <strong>Prêmio: R$ 500,00</strong>
+                </div>
+                <div class="counter">9.505.387</div>
+            </div>
+	</footer>
+    </div>
+	<div class="banner-container">
+    <img src="banner.png" alt="Banner" class="banner">
+    <div class="text-box">
+        <p>Título de Capitalização da Modalidade Filantropia Premiável de Contribuição Única, emitido pela VIACAP Capitalização S/A, CNPJ 88.076.302/0001-94, aprovado pelo Processo SUSEP que consta no Título. SAC 0800 740 7819. OUVIDORIA 0800 8741 505, de segunda a sexta-feira, das 8h às 17h. É proibida a venda de título de capitalização a menores de dezesseis anos. O valor não exigido dentro do prazo prescricional, estabelecido pela legislação em vigor, acarretará a perda desse direito. A aquisição deste título implica a cessão de 100% do direito de resgate ao INSTITUTO PLURAL, certificada nos termos da legislação em vigor. Antes de contratar consulte previamente as Condições Gerais. As condições contratuais/regulamento deste produto protocolizadas pela sociedade junto à SUSEP poderão ser consultadas no endereço eletrônico www.susep.gov.br, de acordo com o número de processo constante da proposta. Consulte as informações legais da Resolução CNSP 382/2020 em www.viacapitalizacao.com.br/. Prêmios líquidos de imposto de renda. Confira o resultado dos sorteios e as condições de participação em www.wesleyalemaopremios.com.br . Imagens meramente ilustrativas.</p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wesley Alemão Prêmios</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1f2b38;
+            color: #ffffff;
+        }
+
+        header {
+            background-color: #000000;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header img {
+            height: 40px;
+        }
+
+        .menu-button {
+        font-size: 24px;
+        background: none;
+        color: white;
+        border: none;
+        cursor: pointer;
+        position: absolute;
+        right: 20px; /* Mantém o botão no canto direito */
+        top: 10px; /* Ajusta verticalmente */
+    }
+
+        .menu {
+    display: none; /* Inicialmente oculto */
+    position: fixed;
+    top: 50px; /* Abaixo do topo preto */
+    left: 0;
+    width: 100%;
+    height: calc(100% - 50px); /* O restante da tela */
+    background-color: #000;
+    z-index: 1000; /* Garante que o menu esteja acima de outros elementos */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.menu .close-button {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    background: none;
+    color: white;
+    font-size: 24px;
+    border: none;
+    cursor: pointer;
+}
+
+        .menu a {
+    display: block; /* Cada item ocupa uma linha */
+    padding: 15px 20px; /* Espaçamento interno */
+    color: white; /* Cor do texto */
+    text-decoration: none; /* Remove sublinhado */
+    font-size: 24px; /* Tamanho da fonte */
+    text-align: center; /* Centraliza o texto */
+    width: 100%; /* Cada item ocupa a largura total */
+    margin-left: -20px; /* Move os itens para a esquerda */
+}
+
+                .menu a:hover {
+            background-color: #444;
+        }
+	        .title-buttons {
+            margin: 20px;
+        }
+
+        #prizeModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #prizeModal img {
+            max-width: 80%;
+            max-height: 80%;
+            border: 5px solid #fff;
+            border-radius: 10px;
+        }
+
+        #closeModalButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #closeModalButton:hover {
+            background-color: #ff1a1a;
+        }
+	.modal {
+    display: none; /* Inicialmente oculto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fundo semitransparente */
+    justify-content: center;
+    align-items: center;
+    z-index: 1001; /* Garante que o modal esteja acima de outros elementos */
+}
+
+.modal-content {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    width: 60%;
+    max-width: 400px;
+}
+
+.close-button {
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+}
+
+.close-button:hover {
+    color: red;
+}
+
+        .container-raio {
+            width: 85%;
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #1f2b38;
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .title-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            color: #ffc107;
+            font-size: 24px;
+        }
+
+        .title2 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+
+        .modal-content {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            width: 60%;
+            max-width: 400px;
+        }
+
+        .close-button {
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+        }
+
+        .close-button:hover {
+            color: red;
+        }
+	.banner-container {
+    text-align: center; /* Centraliza todo o conteúdo do contêiner */
+    margin-top: 20px; /* Adiciona espaço acima do contêiner */
+}
+
+.banner {
+    width: 100%; /* O banner ocupa toda a largura da tela */
+    height: auto; /* Mantém a proporção da imagem */
+    display: block; /* Remove margens automáticas */
+}
+
+.text-box {
+    margin-top: 10px; /* Espaço entre o banner e o texto */
+    background-color: #1f2b38; /* Cor de fundo da caixa */
+    color: #D3D3D3; /* Cor do texto */
+    padding: 10px; /* Espaço interno da caixa */
+    border-radius: 8px; /* Bordas arredondadas */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Sombra para destacar */
+    font-size: 16px; /* Tamanho do texto */
+    max-width: 90%; /* Limita a largura da caixa de texto */
+    margin-left: auto; /* Centraliza horizontalmente */
+    margin-right: auto;
+}
+    #entrarButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #FF3030; /* Cor do retângulo */
+    font-size: 19px; /* Define tamanho do texto */
+    font-weight: bold;
+    color: #FFFFFF; /* Texto branco */
+    border: 1px solid #000000;
+    border-radius: 8px; /* Bordas arredondadas */
+    padding: 5px;
+    width: 90%; /* Adapta a largura ao conteúdo */
+    margin: 0 auto; /* Centraliza horizontalmente */
+    width: 300px;
+}
+		#sairButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #FF3030; /* Cor do retângulo */
+    font-size: 19px; /* Define tamanho do texto */
+    font-weight: bold;
+    color: #FFFFFF; /* Texto branco */
+    border: 1px solid #000000;
+    border-radius: 8px; /* Bordas arredondadas */
+    padding: 5px;
+    width: 300px; /* Largura fixa */
+    margin: 0 auto; /* Centraliza horizontalmente */
+}
+	#userPhone {
+        display: none;
+        margin-top: 20px;
+	margin-right: 10px;
+ /* Ajuste o valor para mover mais ou menos para baixo */
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header">
+            <img src="logo.png" alt="Logo Wesley Alemão">
+            <button class="menu-button" id="menuButton">☰</button>
+            <div class="menu" id="menu">
+		<button class="close-button" id="closeMenuButton">×</button>
+                <div id="userPhone" style="display: none; margin-left: 20px;">
+    <img src="perfil.png" alt="Perfil" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+    <span id="userPhoneText"></span>
+</div>
+                <a href="index.html">🏠 Início</a>
+                <a href="campanhas.html">⚡ Campanhas</a>
+                <a href="#numeros">📋 Meus Títulos</a>
+                <a href="ganhadores.html">🎉 Ganhadores</a>
+                <a href="entrar%20em%20contato.html">📧 Entre em contato</a>
+                <a href="termos.html">📜 Termos de uso</a>
+                <button id="entrarButton">Entrar</button>
+                <button id="sairButton" style="display: none;">Sair</button> <!-- Botão Sair -->
+		
+            </div>
+        </div>
+        <!-- Modal -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" id="closeButton">×</span>
+                <p>Você ainda não adquiriu nenhum Título</p>
+                <button id="showPhoneButton">Informar Telefone</button>
+                <div id="phoneForm" style="display: none;">
+                    <input type="text" id="phoneInput" placeholder="(11) 11111-1111" maxlength="15" />
+                    <button id="continueButton">Continuar</button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <script>
+    const modal = document.getElementById('modal');
+    const closeButton = document.getElementById('closeButton');
+    const menuLink = document.querySelector('a[href="#numeros"]');
+    const showPhoneButton = document.getElementById('showPhoneButton');
+    const phoneForm = document.getElementById('phoneForm');
+    const phoneInput = document.getElementById('phoneInput');
+    const entrarButton = document.getElementById('entrarButton');
+    const sairButton = document.getElementById('sairButton');
+    const modalMessage = document.querySelector('.modal-content p');
+    const userPhone = document.getElementById('userPhone');
+    const userPhoneText = document.getElementById('userPhoneText');
+    const menuButton = document.getElementById('menuButton');
+    const closeMenuButton = document.getElementById('closeMenuButton');
+    const menu = document.getElementById('menu');
+
+    // Inicialmente, ocultar o botão "Informar Telefone" e o formulário de telefone
+    showPhoneButton.style.display = 'none';
+    phoneForm.style.display = 'none';
+
+    // Função para abrir o modal ao clicar no link "Meus Títulos"
+    menuLink.addEventListener('click', function(event) {
+        event.preventDefault();
+        modal.style.display = 'flex';
+        modalMessage.style.display = 'block';
+        showPhoneButton.style.display = 'none';
+        phoneForm.style.display = 'none';
+    });
+
+    // Função para abrir o modal ao clicar no botão "Entrar"
+    entrarButton.addEventListener('click', function() {
+        modal.style.display = 'flex';
+        modalMessage.style.display = 'none';
+        showPhoneButton.style.display = 'block';
+        phoneForm.style.display = 'none';
+    });
+
+    // Função para exibir o formulário de telefone
+    showPhoneButton.addEventListener('click', function() {
+        phoneForm.style.display = 'block';
+    });
+
+    // Função para fechar o modal
+    closeButton.addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // Máscara para o campo de telefone
+    phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 11) {
+            value = value.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+        } else if (value.length >= 6) {
+            value = value.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+        } else if (value.length >= 3) {
+            value = value.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+        } else if (value.length > 0) {
+            value = value.replace(/^(\d{0,2})$/, '($1');
+        }
+        e.target.value = value;
+    });
+
+    // Função para capturar o número de telefone e atualizar o menu
+    const continueButton = document.getElementById('continueButton');
+
+    continueButton.addEventListener('click', function() {
+        const phoneNumber = phoneInput.value.trim();
+
+        if (phoneNumber) {
+            // Armazenar o número no localStorage
+            localStorage.setItem('userPhone', phoneNumber);
+
+            userPhoneText.textContent = `Usuário: ${phoneNumber}`;
+            userPhone.style.display = 'flex';
+            entrarButton.style.display = 'none';
+            sairButton.style.display = 'block';
+            modal.style.display = 'none';
+        } else {
+            alert('Por favor, informe um número de telefone válido.');
+        }
+    });
+
+    // Função para remover o usuário e mostrar o botão "Entrar"
+    sairButton.addEventListener('click', function() {
+        // Limpar o item no localStorage
+        localStorage.removeItem('userPhone');
+        
+        // Atualizar a interface
+        userPhone.style.display = 'none';
+        entrarButton.style.display = 'block';
+        sairButton.style.display = 'none';
+    });
+
+    // Menu dropdown
+    menuButton.addEventListener('click', () => {
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!menu.contains(event.target) && event.target !== menuButton) {
+            menu.style.display = 'none';
+        }
+    });
+
+    // Abre o menu ao clicar no botão
+    menuButton.addEventListener('click', () => {
+        menu.style.display = 'block';
+    });
+
+    // Fecha o menu ao clicar no botão "X"
+    closeMenuButton.addEventListener('click', () => {
+        menu.style.display = 'none';
+    });
+
+    // Fecha o menu ao clicar fora dele
+    document.addEventListener('click', (event) => {
+        if (!menu.contains(event.target) && event.target !== menuButton) {
+            menu.style.display = 'none';
+        }
+    });
+
+    // Recuperar o número de telefone armazenado ao carregar a página
+    window.addEventListener('load', function() {
+        const storedPhone = localStorage.getItem('userPhone');  // Recupera o número de telefone do localStorage
+
+        if (storedPhone) {
+            // Se o número estiver no localStorage, exiba as informações do usuário
+            userPhoneText.textContent = `Usuário: ${storedPhone}`;
+            userPhone.style.display = 'flex';
+            entrarButton.style.display = 'none';
+            sairButton.style.display = 'block';
+        }
+    });
+</script>
+</header>
+
+<div class="container-raio">
+    <div class="title-container">
+        <div class="icon">📋</div>
+        <div class="title2">Termos de Utilização</div>
+    </div>
+    <div id="termos">
+        <p>Termos de utilização:</p>
+        <p>Termos de utilização:
+
+1) “Na qualidade de Subscritor deste Título de Capitalização, aprovado conforme processo SUSEP que consta no titulo:
+
+(i) tenho conhecimento de que a contratação deste Título de Capitalização implica na automática adesão a todos os termos das Condições Gerais e do regulamento do Título de Capitalização e que esse documento encontra-se ao meu dispor no site da SUSEP
+
+(ii) O contemplado poderá autorizar de forma gratuita o direito de uso do seu nome, imagem e voz para divulgação da campanha.
+
+(iii) Concordo com os Termos de Uso e a Política de privacidade
+
+
+
+2) Você está adquirindo um Título de Capitalização cujo direito de resgate será revertido para o INSTITUTO PLURAL certificado nos termos da regulamentação vigente, caso não haja comunicação à sociedade de capitalização, sobre a desistência da cessão, até o dia anterior à realização do primeiro sorteio previsto no título de capitalização. 
+
+
+
+Ao clicar em comprar você concorda com os termos, política de uso, regulamento e condições gerais do Wesley Alemão Prêmios.</p>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" id="closeButton">×</span>
+        <p>Você ainda não adquiriu nenhum Título</p>
+    </div>
+</div>
+
+<script>
+    // Menu toggle
+    const menuButton = document.getElementById('menuButton');
+    const menu = document.getElementById('menu');
+
+    menuButton.addEventListener('click', () => {
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!menu.contains(event.target) && event.target !== menuButton) {
+            menu.style.display = 'none';
+        }
+    });
+
+    // Modal logic
+    const modal = document.getElementById('modal');
+    const closeButton = document.getElementById('closeButton');
+    const menuLink = document.querySelector('a[href="#numeros"]');
+
+    menuLink.addEventListener('click', function (event) {
+        event.preventDefault();
+        modal.style.display = 'flex';
+    });
+
+    closeButton.addEventListener('click', function () {
+        modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', function (event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+</script>
+		<div class="banner-container">
+    <img src="banner.PNG" alt="Banner" class="banner">
+    <div class="text-box">
+        <p>Título de Capitalização da Modalidade Filantropia Premiável de Contribuição Única, emitido pela VIACAP Capitalização S/A, CNPJ 88.076.302/0001-94, aprovado pelo Processo SUSEP que consta no Título. SAC 0800 740 7819. OUVIDORIA 0800 8741 505, de segunda a sexta-feira, das 8h às 17h. É proibida a venda de título de capitalização a menores de dezesseis anos. O valor não exigido dentro do prazo prescricional, estabelecido pela legislação em vigor, acarretará a perda desse direito. A aquisição deste título implica a cessão de 100% do direito de resgate ao INSTITUTO PLURAL, certificada nos termos da legislação em vigor. Antes de contratar consulte previamente as Condições Gerais. As condições contratuais/regulamento deste produto protocolizadas pela sociedade junto à SUSEP poderão ser consultadas no endereço eletrônico www.susep.gov.br, de acordo com o número de processo constante da proposta. Consulte as informações legais da Resolução CNSP 382/2020 em www.viacapitalizacao.com.br/. Prêmios líquidos de imposto de renda. Confira o resultado dos sorteios e as condições de participação em www.wesleyalemaopremios.com.br . Imagens meramente ilustrativas.</p>
+    </div>
+</div>
+</body>
+</html>
