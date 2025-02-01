@@ -929,8 +929,17 @@ window.addEventListener('load', function() {
 
   console.log("Valor total inicial:", totalValue);
 
-  // Simulação de verificação de login (alterar conforme seu sistema de autenticação)
-  let isLoggedIn = false; // Mudar para 'true' após login bem-sucedido
+  // Função para verificar se o telefone está salvo no localStorage
+  function isPhoneSaved() {
+    console.log("Verificando se o telefone está salvo...");
+    return localStorage.getItem('userPhone') !== null;
+  }
+
+  // Função para salvar o número de telefone no localStorage (quando o usuário inserir o número)
+  function savePhoneNumber(phoneNumber) {
+    localStorage.setItem("userPhone", phoneNumber);
+    console.log("Número de telefone salvo no localStorage.");
+  }
 
   // Atualiza o botão inicialmente
   updateButton();
@@ -1002,13 +1011,14 @@ window.addEventListener('load', function() {
     return titles;
   }
 
-  // Verificação de login e envio de requisição para gerar chave Pix
+  // Verificando se o telefone está salvo antes de permitir gerar a chave Pix
   calculateButton.addEventListener("click", async () => {
     console.log("Botão de calcular clicado.");
 
-    if (!isLoggedIn) {
-      alert("Você precisa fazer login para continuar.");
-      return; // Impede a geração da chave Pix se não estiver logado
+    if (!isPhoneSaved()) {
+      alert("Por favor, faça login informando seu número de telefone primeiro.");
+      console.log("Telefone não salvo. Interrompendo a execução.");
+      return; // Impede a execução do restante da função se o telefone não estiver salvo
     }
 
     const pricePerNumber = 0.06;
@@ -1096,6 +1106,8 @@ window.addEventListener('load', function() {
     });
   }
 </script>
+
+
 
 <br>
 
