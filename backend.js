@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Caminho do certificado .p12
-const certificado = fs.readFileSync("./producao-680610-premio.p12.p12");
+const certificado = fs.readFileSync("./producao-680610-premio.p12");
 
 // Credenciais do PIX
 const credenciais = {
