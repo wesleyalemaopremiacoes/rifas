@@ -62,7 +62,7 @@ async function gerarChavePix(valor) {
       data: JSON.stringify({
         calendario: { expiracao: 3600 },
         valor: { original: valor.toFixed(2) },
-        chave: "mtt.h10@hotmail.com", // Substitua pela sua chave Pix
+        chave: "aea61daf-326c-4121-89a6-17f7544dedcf", // Substitua pela sua chave Pix
         solicitacaoPagador: "Pagamento de títulos",
       }),
     };
