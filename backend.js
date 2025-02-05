@@ -12,12 +12,12 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Caminho do certificado .p12
-const certificado = fs.readFileSync("./homologacao-680504-loja2.p12");
+const certificado = fs.readFileSync("./producao-680610-premio.p12.p12");
 
 // Credenciais do PIX
 const credenciais = {
-  client_id: "Client_Id_81ae6fbca0e6de8d8ce690690289bfd6e2e1d7bf",
-  client_secret: "Client_Secret_57bd0d434850d5d8c578e01df13750a1a3ced239",
+  client_id: "Client_Id_5292a7850c8ba56c5d8d28c4d882bcd226203df5",
+  client_secret: "Client_Secret_1827eaffaf296a8115b7995eca0a44ae34740d8a",
 };
 
 // Codificando as credenciais em base64
@@ -36,7 +36,7 @@ async function gerarChavePix(valor) {
     // Configuração do token
     const configToken = {
       method: "POST",
-      url: "https://pix-h.api.efipay.com.br/oauth/token",
+      url: "https://pix.api.efipay.com.br/oauth/token",
       headers: {
         Authorization: `Basic ${auth}`,
         "Content-Type": "application/json",
@@ -53,7 +53,7 @@ async function gerarChavePix(valor) {
     // Configurando a cobrança
     const configCob = {
       method: "POST",
-      url: "https://pix-h.api.efipay.com.br/v2/cob",
+      url: "https://pix.api.efipay.com.br/v2/cob",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -74,7 +74,7 @@ async function gerarChavePix(valor) {
     console.log("Cobrança criada com sucesso:", cobResponse.data);
 
     // Validar a location e o QR Code
-    const qrCodeResponse = await axios.get(`https://pix-h.api.efipay.com.br/v2/loc/${loc.id}/qrcode`, {
+    const qrCodeResponse = await axios.get(`https://pix.api.efipay.com.br/v2/loc/${loc.id}/qrcode`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -137,7 +137,7 @@ app.post("/verificar-pagamento", async (req, res) => {
     // Configuração para consultar status do pagamento
     const configConsulta = {
       method: "GET",
-      url: `https://pix-h.api.efipay.com.br/v2/cob/${txid}`,
+      url: `https://pix.api.efipay.com.br/v2/cob/${txid}`,
       headers: {
         Authorization: `Bearer ${auth}`,
         "Content-Type": "application/json",
