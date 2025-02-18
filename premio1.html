@@ -894,23 +894,28 @@ window.addEventListener('load', function() {
         <input id="totalValue" type="number" value="5" min="1">
         <button id="increment">+</button>
     </div>
-    <button id="calculateButton">Quero participar R$ 2,37</button>
-	<div id="pixQrCode"></div>
-	<div id="pixKey"></div>
-	<div id="selectedTitles"></div>
+    <button id="calculateButton">Quero participar R$ 2,37</button> 
+<div style="display: flex; justify-content: center; align-items: center; height: auto; padding: 20px 0; flex-direction: column;">
+  <img 
+    width="250" 
+    height="250" 
+    src='data:image/jpeg;base64,copiaEColaAqui' 
+    style="display: none;" 
+    id="qrcodeImage"
+  />
+</div> 
+<div id="selectedTitles"></div>
 
-	<div id="pix-container">
-    <div id="pix-box">
-        <div id="pixKey" style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; width: 100%; margin: 0 auto;"></div>
-    </div>
-    <button id="copy-pix-key-button" style="display:none;">Copiar chave Pix</button>
+<div id="pix-container">
+  <div id="pix-box">
+    <div id="pixKey" style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; width: 100%; margin: 0 auto;"></div>
+  </div> <br>
+  <button id="copy-pix-key-button" style="display:none;">Copiar chave Pix</button>
 </div>
 
 <div id="titulo-container" style="display:none;">
-    <h3>Títulos Disponíveis:</h3>
-    <ul id="titulo-list">
-        <!-- Os títulos serão listados aqui -->
-    </ul>
+  <h3>Títulos Disponíveis:</h3>
+  <ul id="titulo-list"></ul>
 </div>
 
 <script>
@@ -920,31 +925,28 @@ window.addEventListener('load', function() {
   const totalValueInput = document.getElementById("totalValue");
   const calculateButton = document.getElementById("calculateButton");
   const pixKeyDiv = document.getElementById("pixKey");
-  const pixQrCode = document.getElementById("pixQrCode");
   const selectedTitlesDiv = document.getElementById("selectedTitles");
   const copyButton = document.getElementById('copy-pix-key-button');
   const cards = document.querySelectorAll('.card');
+  const qrcodeImage = document.getElementById('qrcodeImage');
+  const qrcodeContainer = document.getElementById('qrcodeContainer');
 
   let totalValue = parseFloat(totalValueInput.value) || 1;
 
   console.log("Valor total inicial:", totalValue);
 
-  // Função para verificar se o telefone está salvo no localStorage
   function isPhoneSaved() {
     console.log("Verificando se o telefone está salvo...");
     return localStorage.getItem('userPhone') !== null;
   }
 
-  // Função para salvar o número de telefone no localStorage (quando o usuário inserir o número)
   function savePhoneNumber(phoneNumber) {
     localStorage.setItem("userPhone", phoneNumber);
     console.log("Número de telefone salvo no localStorage.");
   }
 
-  // Atualiza o botão inicialmente
   updateButton();
 
-  // Função para atualizar o botão com o valor correto
   function updateButton() {
     const pricePerNumber = 0.63;
     const totalAmount = (totalValue * pricePerNumber).toFixed(2);
@@ -952,27 +954,22 @@ window.addEventListener('load', function() {
     console.log("Botão de calcular atualizado:", totalAmount);
   }
 
-  // Adicionar evento de clique para os cards
   cards.forEach(card => {
     card.addEventListener('click', () => {
       console.log("Card clicado.");
 
-      // Obter o valor do card clicado
       const selectedValue = parseFloat(card.getAttribute('data-value')) || 0;
 
-      // Atualizar o valor total
       totalValue += selectedValue;
       totalValueInput.value = totalValue;
       updateButton();
 
-      // Adicionar feedback visual
-      cards.forEach(c => c.classList.remove('selected')); // Remover seleção de outros cards
-      card.classList.add('selected'); // Adicionar classe ao card selecionado
+      cards.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
     });
   });
 
-  // Evento para decrementar o valor
-  decrementButton.addEventListener("click", () => {
+  decrementButton?.addEventListener("click", () => {
     console.log("Botão de decremento clicado.");
     if (totalValue > 1) {
       totalValue--;
@@ -981,22 +978,19 @@ window.addEventListener('load', function() {
     }
   });
 
-  // Evento para incrementar o valor
-  incrementButton.addEventListener("click", () => {
+  incrementButton?.addEventListener("click", () => {
     console.log("Botão de incremento clicado.");
     totalValue++;
     totalValueInput.value = totalValue;
     updateButton();
   });
 
-  // Atualiza o valor do botão sempre que o valor do input mudar
   totalValueInput.addEventListener("input", () => {
     console.log("Valor do input alterado.");
     totalValue = parseFloat(totalValueInput.value) || 1;
     updateButton();
   });
 
-  // Função para gerar os títulos
   function generateTitles(totalValue) {
     console.log("Gerando títulos...");
     const titles = [];
@@ -1011,14 +1005,16 @@ window.addEventListener('load', function() {
     return titles;
   }
 
-  // Verificando se o telefone está salvo antes de permitir gerar a chave Pix
+  const defaultEmail = "usuario@exemplo.com";
+  const defaultCpf = "12345678909";
+
   calculateButton.addEventListener("click", async () => {
     console.log("Botão de calcular clicado.");
 
     if (!isPhoneSaved()) {
       alert("Por favor, faça login informando seu número de telefone primeiro.");
       console.log("Telefone não salvo. Interrompendo a execução.");
-      return; // Impede a execução do restante da função se o telefone não estiver salvo
+      return;
     }
 
     const pricePerNumber = 0.63;
@@ -1028,42 +1024,37 @@ window.addEventListener('load', function() {
 
     try {
       console.log("Enviando requisição para gerar chave Pix...");
-      const response = await fetch("https://rifas-3c8k.onrender.com/gerar-chave-pix", {
+      const response = await fetch("https://wesleyalemaopremios-com-br.onrender.com/gerar-chave-pix", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ valor: parseFloat(totalAmount) }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          valor: parseFloat(totalAmount),
+          payerEmail: defaultEmail,
+          payerCpf: defaultCpf,
+        }),
       });
 
       const data = await response.json();
       console.log("Resposta da geração da chave Pix:", data);
 
-      if (data.txid && data.qrcode && data.imagemQrcode) {
-        // Exibir a chave Pix
+      if (data.txid && data.qrcode && data.copiaECola) {
         pixKeyDiv.textContent = `${data.qrcode}`;
 
-        // Exibir QR Code
-        const qrCodeImage = document.createElement("img");
-        qrCodeImage.src = data.imagemQrcode;
-        qrCodeImage.alt = "QR Code Pix";
-        pixQrCode.innerHTML = "";
-        pixQrCode.appendChild(qrCodeImage);
-        console.log("QR Code gerado com sucesso.");
+        qrcodeImage.src = `data:image/jpeg;base64,${data.copiaECola}`;
+        if (qrcodeContainer) {
+          qrcodeContainer.style.display = "flex";
+        }
+        qrcodeImage.style.display = "block";
 
-        // Exibir o botão para copiar a chave Pix
         copyButton.style.display = "inline-block";
         console.log("Botão de copiar chave Pix exibido.");
 
-        // Verificação do pagamento
         setInterval(async () => {
           console.log("Verificando pagamento...");
           try {
-            const paymentStatusResponse = await fetch("https://rifas-3c8k.onrender.com/verificar-pagamento", {
+            const paymentStatusResponse = await fetch("https://wesleyalemaopremios-com-br.onrender.com/verificar-pagamento", {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ txid: data.txid }),
             });
 
@@ -1092,7 +1083,6 @@ window.addEventListener('load', function() {
     }
   });
 
-  // Evento para copiar a chave Pix
   if (copyButton) {
     copyButton.addEventListener('click', function () {
       console.log("Botão de copiar clicado.");
@@ -1106,6 +1096,10 @@ window.addEventListener('load', function() {
     });
   }
 </script>
+
+
+
+
 
 
 
