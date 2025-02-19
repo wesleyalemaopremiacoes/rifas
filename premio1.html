@@ -823,7 +823,7 @@ window.addEventListener('load', function() {
         <div class="right-content">
             <span>Por apenas</span>
             <div class="strong-container">
-                <strong>R$ 0,63</strong>
+                <strong>R$ 0,45</strong>
             </div>
         </div>
     </div>
@@ -894,22 +894,22 @@ window.addEventListener('load', function() {
         <input id="totalValue" type="number" value="5" min="1">
         <button id="increment">+</button>
     </div>
-    <button id="calculateButton">Quero participar R$ 2,37</button> 
+	<button id="calculateButton">Quero participar R$ 2,37</button>
 <div style="display: flex; justify-content: center; align-items: center; height: auto; padding: 20px 0; flex-direction: column;">
   <img 
     width="250" 
     height="250" 
-    src='data:image/jpeg;base64,copiaEColaAqui' 
+    src="" 
     style="display: none;" 
     id="qrcodeImage"
   />
-</div> 
+</div>
 <div id="selectedTitles"></div>
 
 <div id="pix-container">
   <div id="pix-box">
     <div id="pixKey" style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; width: 100%; margin: 0 auto;"></div>
-  </div> <br>
+  </div><br>
   <button id="copy-pix-key-button" style="display:none;">Copiar chave Pix</button>
 </div>
 
@@ -919,7 +919,6 @@ window.addEventListener('load', function() {
 </div>
 
 <script>
-  // Selecionando os elementos principais
   const decrementButton = document.getElementById("decrement");
   const incrementButton = document.getElementById("increment");
   const totalValueInput = document.getElementById("totalValue");
@@ -927,50 +926,18 @@ window.addEventListener('load', function() {
   const pixKeyDiv = document.getElementById("pixKey");
   const selectedTitlesDiv = document.getElementById("selectedTitles");
   const copyButton = document.getElementById('copy-pix-key-button');
-  const cards = document.querySelectorAll('.card');
   const qrcodeImage = document.getElementById('qrcodeImage');
-  const qrcodeContainer = document.getElementById('qrcodeContainer');
 
-  let totalValue = parseFloat(totalValueInput.value) || 1;
-
-  console.log("Valor total inicial:", totalValue);
-
-  function isPhoneSaved() {
-    console.log("Verificando se o telefone está salvo...");
-    return localStorage.getItem('userPhone') !== null;
-  }
-
-  function savePhoneNumber(phoneNumber) {
-    localStorage.setItem("userPhone", phoneNumber);
-    console.log("Número de telefone salvo no localStorage.");
-  }
-
-  updateButton();
+  let totalValue = parseFloat(totalValueInput?.value) || 1;
 
   function updateButton() {
-    const pricePerNumber = 0.63;
+    const pricePerNumber = 0.45;
     const totalAmount = (totalValue * pricePerNumber).toFixed(2);
     calculateButton.textContent = `Quero participar R$ ${totalAmount}`;
     console.log("Botão de calcular atualizado:", totalAmount);
   }
 
-  cards.forEach(card => {
-    card.addEventListener('click', () => {
-      console.log("Card clicado.");
-
-      const selectedValue = parseFloat(card.getAttribute('data-value')) || 0;
-
-      totalValue += selectedValue;
-      totalValueInput.value = totalValue;
-      updateButton();
-
-      cards.forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-    });
-  });
-
   decrementButton?.addEventListener("click", () => {
-    console.log("Botão de decremento clicado.");
     if (totalValue > 1) {
       totalValue--;
       totalValueInput.value = totalValue;
@@ -979,102 +946,69 @@ window.addEventListener('load', function() {
   });
 
   incrementButton?.addEventListener("click", () => {
-    console.log("Botão de incremento clicado.");
     totalValue++;
     totalValueInput.value = totalValue;
     updateButton();
   });
 
-  totalValueInput.addEventListener("input", () => {
-    console.log("Valor do input alterado.");
+  totalValueInput?.addEventListener("input", () => {
     totalValue = parseFloat(totalValueInput.value) || 1;
     updateButton();
   });
 
-  function generateTitles(totalValue) {
-    console.log("Gerando títulos...");
-    const titles = [];
-    for (let i = 1; i <= totalValue; i++) {
-      let titleNumber = i.toString().padStart(7, "0");
-      if (titleNumber === "0000009" || titleNumber === "0000010") {
-        continue;
-      }
-      titles.push(`Título ${titleNumber}`);
+  function generateRandomTitles(quantity) {
+    const titles = new Set();
+    while (titles.size < quantity) {
+      const randomNumber = Math.floor(Math.random() * 9999999) + 1;
+      titles.add(randomNumber.toString().padStart(7, "0"));
     }
-    console.log("Títulos gerados:", titles);
-    return titles;
+    return Array.from(titles);
   }
 
-  const defaultEmail = "usuario@exemplo.com";
-  const defaultCpf = "12345678909";
-
   calculateButton.addEventListener("click", async () => {
-    console.log("Botão de calcular clicado.");
-
-    if (!isPhoneSaved()) {
-      alert("Por favor, faça login informando seu número de telefone primeiro.");
-      console.log("Telefone não salvo. Interrompendo a execução.");
-      return;
-    }
-
-    const pricePerNumber = 0.63;
+    const pricePerNumber = 0.45;
     const totalAmount = (totalValue * pricePerNumber).toFixed(2);
 
-    console.log("Total calculado para chave Pix:", totalAmount);
-
     try {
-      console.log("Enviando requisição para gerar chave Pix...");
       const response = await fetch("https://wesleyalemaopremios-com-br.onrender.com/gerar-chave-pix", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           valor: parseFloat(totalAmount),
-          payerEmail: defaultEmail,
-          payerCpf: defaultCpf,
+          payerEmail: "usuario@exemplo.com",
+          payerCpf: "12345678909",
         }),
       });
 
       const data = await response.json();
-      console.log("Resposta da geração da chave Pix:", data);
-
       if (data.txid && data.qrcode && data.copiaECola) {
-        pixKeyDiv.textContent = `${data.qrcode}`;
-
+        pixKeyDiv.textContent = data.qrcode;
         qrcodeImage.src = `data:image/jpeg;base64,${data.copiaECola}`;
-        if (qrcodeContainer) {
-          qrcodeContainer.style.display = "flex";
-        }
         qrcodeImage.style.display = "block";
-
         copyButton.style.display = "inline-block";
-        console.log("Botão de copiar chave Pix exibido.");
 
-        setInterval(async () => {
-          console.log("Verificando pagamento...");
+        const paymentChecker = setInterval(async () => {
           try {
-            const paymentStatusResponse = await fetch("https://wesleyalemaopremios-com-br.onrender.com/verificar-pagamento", {
+            const statusResponse = await fetch("https://wesleyalemaopremios-com-br.onrender.com/verificar-pagamento", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ txid: data.txid }),
             });
 
-            const paymentStatusData = await paymentStatusResponse.json();
-            console.log("Status do pagamento:", paymentStatusData);
-
-            if (paymentStatusData.status === "CONFIRMED") {
-              console.log("Pagamento confirmado!");
-              const titles = generateTitles(totalValue);
+            const statusData = await statusResponse.json();
+            if (statusData.status === "CONFIRMED") {
+              clearInterval(paymentChecker);
+              const titles = generateRandomTitles(totalValue);
               selectedTitlesDiv.innerHTML = `<h3>Títulos gerados:</h3><ul>${titles.map(title => `<li>${title}</li>`).join("")}</ul>`;
-              selectedTitlesDiv.style.display = "block";
-            } else {
-              console.log("Pagamento não confirmado.");
+              pixKeyDiv.style.display = "none";
+              copyButton.style.display = "none";
+              qrcodeImage.style.display = "none";
             }
           } catch (error) {
             console.error("Erro ao verificar o pagamento:", error);
           }
         }, 5000);
       } else {
-        console.log("Erro ao gerar chave Pix ou QR Code.");
         pixKeyDiv.textContent = "Erro ao gerar a chave Pix.";
       }
     } catch (error) {
@@ -1083,22 +1017,14 @@ window.addEventListener('load', function() {
     }
   });
 
-  if (copyButton) {
-    copyButton.addEventListener('click', function () {
-      console.log("Botão de copiar clicado.");
-      const pixKey = pixKeyDiv.textContent;
-      navigator.clipboard.writeText(pixKey).then(function () {
-        alert("Chave Pix copiada com sucesso!");
-        console.log("Chave Pix copiada com sucesso.");
-      }).catch(function (err) {
-        console.error("Erro ao copiar a chave Pix:", err);
-      });
+  copyButton?.addEventListener("click", () => {
+    navigator.clipboard.writeText(pixKeyDiv.textContent).then(() => {
+      alert("Chave Pix copiada com sucesso!");
+    }).catch(err => {
+      console.error("Erro ao copiar a chave Pix:", err);
     });
-  }
+  });
 </script>
-
-
-
 
 
 
