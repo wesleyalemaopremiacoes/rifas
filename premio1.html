@@ -808,7 +808,7 @@ window.addEventListener('load', function() {
             <p class="campaign-description">Participe e concorra!</p>
             <p class="footer footer-bold">15414.600117/2025-60</p>
             <button class="cta">Adquira Já!</button>
-            <p class="footer footer-right">📅 20/02/2025 às 18:55</p>
+            <p class="footer footer-right">📅 08/02/2025 às 18:55</p>
         </div>
     </div>
 </div>
@@ -817,7 +817,7 @@ window.addEventListener('load', function() {
         <div class="left-content">
             <span>Sorteio</span>
             <div class="strong-container">
-                <strong>20/02/2025 ÀS 18:55</strong>
+                <strong>08/01/2025 ÀS 18:55</strong>
             </div>
         </div>
         <div class="right-content">
@@ -925,8 +925,8 @@ window.addEventListener('load', function() {
   const calculateButton = document.getElementById("calculateButton");
   const pixKeyDiv = document.getElementById("pixKey");
   const selectedTitlesDiv = document.getElementById("selectedTitles");
-  const copyButton = document.getElementById('copy-pix-key-button');
-  const qrcodeImage = document.getElementById('qrcodeImage');
+  const copyButton = document.getElementById("copy-pix-key-button");
+  const qrcodeImage = document.getElementById("qrcodeImage");
 
   let totalValue = parseFloat(totalValueInput?.value) || 1;
 
@@ -934,7 +934,6 @@ window.addEventListener('load', function() {
     const pricePerNumber = 0.45;
     const totalAmount = (totalValue * pricePerNumber).toFixed(2);
     calculateButton.textContent = `Quero participar R$ ${totalAmount}`;
-    console.log("Botão de calcular atualizado:", totalAmount);
   }
 
   decrementButton?.addEventListener("click", () => {
@@ -989,17 +988,17 @@ window.addEventListener('load', function() {
 
         const paymentChecker = setInterval(async () => {
           try {
-            const statusResponse = await fetch("https://wesleyalemaopremios-com-br.onrender.com/verificar-pagamento", {
+            const statusResponse = await fetch("https://wesleyalemaopremios-com-br.onrender.com/verificar-status", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ txid: data.txid }),
             });
 
             const statusData = await statusResponse.json();
-            if (statusData.status === "CONFIRMED") {
+            if (statusData.status === "approved") {
               clearInterval(paymentChecker);
               const titles = generateRandomTitles(totalValue);
-              selectedTitlesDiv.innerHTML = `<h3>Títulos gerados:</h3><ul>${titles.map(title => `<li>${title}</li>`).join("")}</ul>`;
+              selectedTitlesDiv.innerHTML = `<h3>Títulos gerados:</h3><ul>${titles.filter(title => title !== "0000001" && title !== "0000002").map(title => `<li>${title}</li>`).join("")}</ul>`;
               pixKeyDiv.style.display = "none";
               copyButton.style.display = "none";
               qrcodeImage.style.display = "none";
@@ -1025,6 +1024,7 @@ window.addEventListener('load', function() {
     });
   });
 </script>
+
 
 
 
@@ -1071,12 +1071,84 @@ PREMIAÇÃO: HONDA/POP 110I ES – 2025- (SUGESTÃO DE USO DO PRÊMIO LÍQUIDO: 
 	    <footer>
             <div class="winner">
                 <div>
+                    <span>🏆 Kevin 🏆</span>
+                    <strong>Prêmio: R$ 1.000,00</strong>
+                </div>
+                <div class="counter">1.001.001</div>
+            </div>
+	</footer>
+	    <footer>
+            <div class="winner">
+                <div>
                     <span>🏆 Alisson 🏆</span>
                     <strong>Prêmio: R$ 1.000,00</strong>
                 </div>
                 <div class="counter">1.101.094</div>
             </div>
         </footer>
+	    <footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Giselly 🏆</span>
+                    <strong>Prêmio: R$ 1.000,00</strong>
+                </div>
+                <div class="counter">2.888.555</div>
+            </div>
+	</footer>
+	    <footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Luan 🏆</span>
+                    <strong>Prêmio: R$ 1.000,00</strong>
+                </div>
+                <div class="counter">3.904.755</div>
+            </div>
+	</footer>
+	    <footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Janaina 🏆</span>
+                    <strong>Prêmio: R$ 1.000,00</strong>
+                </div>
+                <div class="counter">3.999.101</div>
+            </div>
+	</footer>
+	    <footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Yuri 🏆</span>
+                    <strong>Prêmio: R$ 1.000,00</strong>
+                </div>
+                <div class="counter">4.311.112</div>
+            </div>
+	</footer>
+	    <footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Luiz 🏆</span>
+                    <strong>Prêmio: R$ 1.000,00</strong>
+                </div>
+                <div class="counter">4.789.537</div>
+            </div>
+	</footer>
+	    <footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Raquel 🏆</span>
+                    <strong>Prêmio: R$ 1.000,00</strong>
+                </div>
+                <div class="counter">5.100.200</div>
+            </div>
+	</footer>
+	    <footer>
+            <div class="winner">
+                <div>
+                    <span>🏆 Marcela 🏆</span>
+                    <strong>Prêmio: R$ 1.000,00</strong>
+                </div>
+                <div class="counter">5.108.791</div>
+            </div>
+	</footer>
 	    <footer>
             <div class="winner">
                 <div>
