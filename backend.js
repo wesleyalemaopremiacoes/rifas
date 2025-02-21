@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Credenciais do Mercado Pago
-const ACCESS_TOKEN = "APP_USR-3549736690525885-021607-bca529f437594d48d37d59397195c4ad-82097337";
+const ACCESS_TOKEN = "APP_USR-7155153166578433-022021-bb77c63cb27d3d05616d5c08e09077cf-502781407";
 
 // Função para gerar chave PIX e QR Code
 async function gerarChavePix(valor, payerEmail = "vida.veral15@gmail.com", payerCpf = "12810691835") {
