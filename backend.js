@@ -3,6 +3,7 @@ const axios = require("axios");
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 
 const app = express();
@@ -10,11 +11,16 @@ app.use(bodyParser.json());
 app.use(cors());
 
 const ACCESS_TOKEN = "APP_USR-7155153166578433-022021-bb77c63cb27d3d05616d5c08e09077cf-502781407";
+const PAGAMENTOS_FILE = "pagamentos.json";
 
+if (!fs.existsSync(PAGAMENTOS_FILE)) {
+  fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify([]));
+}
+
+// Função para gerar a chave PIX
 async function gerarChavePix(valor, payerEmail, payerCpf) {
   try {
     const idempotencyKey = uuidv4();
-
     const response = await axios.post(
       "https://api.mercadopago.com/v1/payments",
       {
@@ -38,14 +44,14 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
       }
     );
 
-    if (!response.data.point_of_interaction || !response.data.point_of_interaction.transaction_data) {
-      throw new Error("Dados do pagamento não retornados corretamente");
-    }
-
     return {
       txid: response.data.id,
       qrcode: response.data.point_of_interaction.transaction_data.qr_code,
       copiaECola: response.data.point_of_interaction.transaction_data.qr_code_base64,
+      valor,
+      payerEmail,
+      payerCpf,
+      status: "pendente",
     };
   } catch (error) {
     console.error("Erro ao gerar chave PIX:", error.response?.data || error.message);
@@ -53,6 +59,7 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
   }
 }
 
+// Rota para gerar a chave PIX e salvar o pagamento
 app.post("/gerar-chave-pix", async (req, res) => {
   try {
     const { valor, payerEmail, payerCpf } = req.body;
@@ -61,12 +68,51 @@ app.post("/gerar-chave-pix", async (req, res) => {
     }
 
     const qrcodeData = await gerarChavePix(parseFloat(valor), payerEmail, payerCpf);
+
+    // Salvar pagamento no arquivo
+    const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
+    pagamentos.push(qrcodeData);
+    fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
+
     res.json(qrcodeData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
+// Função para atualizar o status dos pagamentos
+async function atualizarStatusPagamentos() {
+  try {
+    const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
+
+    for (const pagamento of pagamentos) {
+      if (pagamento.status !== "approved") {
+        const response = await axios.get(`https://api.mercadopago.com/v1/payments/${pagamento.txid}`, {
+          headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+        });
+
+        pagamento.status = response.data.status; // Atualiza o status
+      }
+    }
+
+    fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
+  } catch (error) {
+    console.error("Erro ao atualizar status dos pagamentos:", error.message);
+  }
+}
+
+// Rota para obter apenas pagamentos aprovados
+app.get("/pagamentos", (req, res) => {
+  try {
+    const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
+    const pagamentosPagos = pagamentos.filter((p) => p.status === "approved");
+    res.json(pagamentosPagos);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao carregar pagamentos" });
+  }
+});
+
+// Rota para verificar o status de um pagamento manualmente
 app.post("/verificar-status", async (req, res) => {
   try {
     const { txid } = req.body;
@@ -76,11 +122,24 @@ app.post("/verificar-status", async (req, res) => {
       headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
     });
 
-    res.json({ status: response.data.status });
+    const status = response.data.status;
+
+    // Atualizar status no arquivo
+    const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
+    const pagamento = pagamentos.find((p) => p.txid === txid);
+    if (pagamento) {
+      pagamento.status = status;
+      fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
+    }
+
+    res.json({ status });
   } catch (error) {
     res.status(500).json({ error: "Erro ao verificar status do pagamento" });
   }
 });
+
+// Configuração para atualizar automaticamente os pagamentos a cada 60 segundos
+setInterval(atualizarStatusPagamentos, 60000);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
