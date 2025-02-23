@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamentos Efetuados</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background-color: #f4f4f4; }
+    .refresh-button, .generate-button {
+      padding: 10px 20px;
+      margin: 10px 0;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .refresh-button:hover, .generate-button:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+  <h1>Pagamentos Efetuados</h1>
+
+  <form id="paymentForm">
+    <label>
+      Valor:
+      <input type="number" id="valor" required>
+    </label>
+    <label>
+      Email:
+      <input type="email" id="payerEmail" required>
+    </label>
+    <label>
+      CPF:
+      <input type="text" id="payerCpf" required>
+    </label>
+    <button type="submit" class="generate-button">Gerar PIX</button>
+  </form>
+
+  <button class="refresh-button" id="refreshButton">Atualizar Tabela</button>
+  <table>
+    <thead>
+      <tr>
+        <th>TXID</th>
+        <th>Valor</th>
+        <th>Email</th>
+        <th>CPF</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="paymentsTableBody">
+      <tr><td colspan="5">Nenhum pagamento registrado ainda.</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    const API_URL = "http://localhost:3000";
+
+    document.getElementById("paymentForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const valor = parseFloat(document.getElementById("valor").value);
+      const payerEmail = document.getElementById("payerEmail").value;
+      const payerCpf = document.getElementById("payerCpf").value;
+
+      try {
+        const response = await fetch(`${API_URL}/gerar-chave-pix`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ valor, payerEmail, payerCpf }),
+        });
+
+        if (!response.ok) throw new Error("Erro ao gerar chave PIX.");
+        alert("Pagamento gerado com sucesso!");
+        fetchPayments();
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao gerar pagamento.");
+      }
+    });
+
+    async function fetchPayments() {
+      try {
+        const response = await fetch(`${API_URL}/pagamentos`);
+        const payments = await response.json();
+        const tableBody = document.getElementById("paymentsTableBody");
+        tableBody.innerHTML = "";
+
+        payments.forEach((payment) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${payment.txid}</td>
+            <td>R$ ${payment.valor.toFixed(2)}</td>
+            <td>${payment.payerEmail}</td>
+            <td>${payment.payerCpf}</td>
+            <td>${payment.status}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    document.getElementById("refreshButton").addEventListener("click", fetchPayments);
+    window.onload = fetchPayments;
+  </script>
+</body>
+</html>
