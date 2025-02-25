@@ -45,7 +45,7 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
       }
     );
 
-    return {
+    const qrcodeData = {
       txid: response.data.id,
       qrcode: response.data.point_of_interaction.transaction_data.qr_code,
       copiaECola: response.data.point_of_interaction.transaction_data.qr_code_base64,
@@ -54,6 +54,11 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
       payerCpf,
       status: "pendente",
     };
+
+    // Adicionando log
+    console.log(`Chave PIX gerada: ${JSON.stringify(qrcodeData)}`);
+
+    return qrcodeData;
   } catch (error) {
     console.error("Erro ao gerar chave PIX:", error.response?.data || error.message);
     throw new Error(error.response?.data?.message || "Erro ao gerar chave PIX");
@@ -75,8 +80,12 @@ app.post("/gerar-chave-pix", async (req, res) => {
     pagamentos.push(qrcodeData);
     fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
 
+    // Adicionando log
+    console.log(`Chave PIX gerada com sucesso: txid=${qrcodeData.txid}, valor=${qrcodeData.valor}, email=${qrcodeData.payerEmail}`);
+
     res.json(qrcodeData);
   } catch (error) {
+    console.error("Erro ao gerar chave PIX:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
