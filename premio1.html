@@ -964,27 +964,27 @@
         <h2 class="centralizado">Selecione a quantidade de títulos</h2>
 <!-- Cards Section -->
 <div class="cards">
-    <div class="card" data-value="34">    
+    <div class="card" data-value="34" onclick="handleCardClick(this)">    
         <div class="value">+34</div>
         <div class="label">SELECIONAR</div>
     </div>
-    <div class="card popular" data-value="100">    
+    <div class="card popular" data-value="100" onclick="handleCardClick(this)">    
         <div class="value">+100</div>
         <div class="label">SELECIONAR</div>
     </div>
-    <div class="card" data-value="150">    
+    <div class="card" data-value="150" onclick="handleCardClick(this)">    
         <div class="value">+150</div>
         <div class="label">SELECIONAR</div>
     </div>
-    <div class="card" data-value="400">    
+    <div class="card" data-value="400" onclick="handleCardClick(this)">    
         <div class="value">+400</div>
         <div class="label">SELECIONAR</div>
     </div>
-    <div class="card" data-value="800">    
+    <div class="card" data-value="800" onclick="handleCardClick(this)">    
         <div class="value">+800</div>
         <div class="label">SELECIONAR</div>
     </div>
-    <div class="card" data-value="1000">    
+    <div class="card" data-value="1000" onclick="handleCardClick(this)">    
         <div class="value">+1000</div>
         <div class="label">SELECIONAR</div>
     </div>
@@ -992,11 +992,11 @@
 
 <!-- Campo para somar o valor -->
 <div class="footer-buttons">
-    <button id="decrement">-</button>
-    <input id="totalValue" type="number" value="25" min="25">
-    <button id="increment">+</button>
+    <button id="decrement" onclick="decrementValue()">-</button>
+    <input id="totalValue" type="number" value="25" min="25" oninput="logInputChange(this)">
+    <button id="increment" onclick="incrementValue()">+</button>
 </div>
-<button id="calculateButton">Quero participar R$ 2,00</button>
+<button id="calculateButton" onclick="calculate()">Quero participar R$ 2,00</button>
 
 <div id="loading" style="display: none; text-align: center; margin: 20px;">
     <div class="hourglass"></div>
@@ -1018,7 +1018,7 @@
                       border: 1px solid #ccc; 
                       border-radius: 5px; 
                       padding: 10px;" />
-        <button id="copy-pix-key-button" style="display: none; padding: 10px; font-size: 14px;">Copiar</button>
+        <button id="copy-pix-key-button" style="display: none; padding: 10px; font-size: 14px;" onclick="copyPixKey()">Copiar</button>
     </div>
 </div>
 
@@ -1038,6 +1038,47 @@
 </div>
 
 <div id="selectedTitles"></div>
+
+<script>
+function handleCardClick(card) {
+    console.log('Card clicked:', card.dataset.value);
+    // Additional logic for card click here
+}
+
+function decrementValue() {
+    const totalValue = document.getElementById('totalValue');
+    const currentValue = parseInt(totalValue.value, 10);
+    if (currentValue > parseInt(totalValue.min, 10)) {
+        totalValue.value = currentValue - 1;
+        console.log('Decremented value:', totalValue.value);
+    } else {
+        console.log('Minimum value reached:', totalValue.min);
+    }
+}
+
+function incrementValue() {
+    const totalValue = document.getElementById('totalValue');
+    totalValue.value = parseInt(totalValue.value, 10) + 1;
+    console.log('Incremented value:', totalValue.value);
+}
+
+function logInputChange(input) {
+    console.log('Input value changed:', input.value);
+}
+
+function calculate() {
+    console.log('Calculate button clicked. Current value:', document.getElementById('totalValue').value);
+    document.getElementById('loading').style.display = 'block';
+}
+
+function copyPixKey() {
+    const pixKeyInput = document.getElementById('pixKey');
+    pixKeyInput.select();
+    document.execCommand('copy');
+    console.log('Pix key copied to clipboard:', pixKeyInput.value);
+}
+</script>
+
 
 <script>
     const decrementButton = document.getElementById("decrement");
