@@ -697,6 +697,27 @@
   text-align: center;
   margin: 10px 0; /* Espaçamento entre os elementos */
 }
+	    /* Estilo para a ampulheta animada */
+.hourglass {
+    border: 4px solid transparent;
+    border-top: 4px solid #555;
+    border-bottom: 4px solid #555;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: rotate 1.5s infinite linear;
+    margin: 0 auto 10px;
+}
+
+/* Animação de rotação */
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
 	           
     </style>
 </head>
@@ -978,6 +999,11 @@
 </div>
 <button id="calculateButton">Quero participar R$ 2,20</button>
 
+<div id="loading" style="display: none; text-align: center; margin: 20px;">
+    <div class="hourglass"></div>
+    <p>Gerando chave Pix, aguarde...</p>
+</div>
+
 <div style="display: flex; justify-content: center; align-items: center; height: auto; padding: 20px 0; flex-direction: column;">
     <div class="countdown" id="countdown" style="display: none;"></div>
 </div>
@@ -997,7 +1023,6 @@
     </div>
 </div>
 
-<!-- Adicionando a imagem do QR Code abaixo do campo da chave Pix -->
 <div style="display: flex; justify-content: center; align-items: center; height: auto; padding: 20px 0; flex-direction: column;">
     <div class="countdown" id="countdown" style="display: none;"></div>
     <img 
@@ -1025,6 +1050,7 @@
     const copyButton = document.getElementById("copy-pix-key-button");
     const qrcodeImage = document.getElementById("qrcodeImage");
     const countdownElement = document.getElementById('countdown');
+    const loadingElement = document.getElementById("loading");
 
     let totalValue = parseFloat(totalValueInput?.value) || 1;
 
@@ -1094,6 +1120,10 @@
         const pricePerNumber = 0.11;
         const totalAmount = (totalValue * pricePerNumber).toFixed(2);
 
+        loadingElement.style.display = "block";
+        pixKeyInput.value = "";
+        document.getElementById("pix-container").style.display = "none";
+
         try {
             const response = await fetch("https://rifas-3c8k.onrender.com/gerar-chave-pix", {
                 method: "POST",
@@ -1113,34 +1143,14 @@
                 qrcodeImage.style.display = "block";
                 copyButton.style.display = "inline-block";
                 startCountdown();
-
-                const paymentChecker = setInterval(async () => {
-                    try {
-                        const statusResponse = await fetch("https://rifas-3c8k.onrender.com/verificar-status", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ txid: data.txid }),
-                        });
-
-                        const statusData = await statusResponse.json();
-                        if (statusData.status === "approved") {
-                            clearInterval(paymentChecker);
-                            const titles = generateRandomTitles(totalValue);
-                            selectedTitlesDiv.innerHTML = `<h3>Títulos gerados:</h3><ul>${titles.map(title => `<li>${title}</li>`).join("")}</ul>`;
-                            document.getElementById("pix-container").style.display = "none";
-                            qrcodeImage.style.display = "none";
-                            countdownElement.style.display = "none";
-                        }
-                    } catch (error) {
-                        console.error("Erro ao verificar o pagamento:", error);
-                    }
-                }, 5000);
             } else {
                 pixKeyInput.value = "Erro ao gerar a chave Pix.";
             }
         } catch (error) {
             console.error("Erro ao conectar com o servidor:", error);
             pixKeyInput.value = "Erro ao conectar com o servidor.";
+        } finally {
+            loadingElement.style.display = "none";
         }
     });
 
@@ -1152,7 +1162,6 @@
         });
     });
 </script>
-
 
 
 
