@@ -55,9 +55,7 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
       status: "pendente",
     };
 
-    // Adicionando log
     console.log(`Chave PIX gerada: ${JSON.stringify(qrcodeData)}`);
-
     return qrcodeData;
   } catch (error) {
     console.error("Erro ao gerar chave PIX:", error.response?.data || error.message);
@@ -75,14 +73,11 @@ app.post("/gerar-chave-pix", async (req, res) => {
 
     const qrcodeData = await gerarChavePix(parseFloat(valor), payerEmail, payerCpf);
 
-    // Salvar pagamento no arquivo
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
     pagamentos.push(qrcodeData);
     fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
 
-    // Adicionando log
     console.log(`Chave PIX gerada com sucesso: txid=${qrcodeData.txid}, valor=${qrcodeData.valor}, email=${qrcodeData.payerEmail}`);
-
     res.json(qrcodeData);
   } catch (error) {
     console.error("Erro ao gerar chave PIX:", error.message);
@@ -101,7 +96,7 @@ async function atualizarStatusPagamentos() {
           headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
         });
 
-        pagamento.status = response.data.status; // Atualiza o status
+        pagamento.status = response.data.status;
       }
     }
 
@@ -137,7 +132,6 @@ app.post("/verificar-status", async (req, res) => {
 
     const status = response.data.status;
 
-    // Atualizar o status no arquivo
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
     const pagamento = pagamentos.find((p) => p.txid === txid);
     if (pagamento) {
@@ -151,8 +145,21 @@ app.post("/verificar-status", async (req, res) => {
   }
 });
 
+// Função para enviar um ping ao servidor
+async function enviarPing() {
+  try {
+    const response = await axios.get(`http://localhost:${PORT}/pagamentos`);
+    console.log("Ping bem-sucedido:", response.data);
+  } catch (error) {
+    console.error("Erro ao enviar ping:", error.message);
+  }
+}
+
 // Configuração para atualizar automaticamente os pagamentos a cada 60 segundos
 setInterval(atualizarStatusPagamentos, 60000);
+
+// Configuração para enviar ping ao servidor a cada 60 segundos
+setInterval(enviarPing, 60000);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
