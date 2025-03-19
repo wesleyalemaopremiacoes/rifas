@@ -90,55 +90,25 @@ app.post("/gerar-chave-pix", async (req, res) => {
   }
 });
 
-// Função para enviar o e-mail
-async function enviarEmail(destinatario, assunto, conteudo) {
-  try {
-    const response = await axios.post(
-      "https://wesleyalemaopremios-com-br.onrender.com/enviar-email",
-      {
-        to: destinatario,
-        subject: assunto,
-        text: conteudo,
-      }
-    );
-    console.log(`E-mail enviado para ${destinatario}: ${assunto}`);
-    return response.data;
-  } catch (error) {
-    console.error("Erro ao enviar e-mail:", error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || "Erro ao enviar e-mail");
-  }
-}
-
-// Função para atualizar o status dos pagamentos e verificar se deve enviar e-mail
-async function atualizarStatusPagamento(txid) {
+// Função para atualizar o status dos pagamentos
+async function atualizarStatusPagamentos() {
   try {
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
-    const pagamento = pagamentos.find(p => p.txid === txid);
 
-    if (!pagamento || pagamento.status === "approved") {
-      return; // Se o pagamento não for encontrado ou já estiver aprovado, não faz nada
-    }
+    for (const pagamento of pagamentos) {
+      if (pagamento.status !== "approved") {
+        const response = await axios.get(`https://api.mercadopago.com/v1/payments/${pagamento.txid}`, {
+          headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+        });
 
-    console.log(`Verificando pagamento com txid ${pagamento.txid}...`);
-    const response = await axios.get(`https://api.mercadopago.com/v1/payments/${pagamento.txid}`, {
-      headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
-    });
-
-    const novoStatus = response.data.status;
-    if (novoStatus !== pagamento.status) {
-      pagamento.status = novoStatus; // Atualiza o status
-
-      // Se o status mudar para "approved", envia o e-mail
-      if (novoStatus === "approved") {
-        console.log(`Pagamento aprovado com txid ${pagamento.txid}. Enviando e-mail...`);
-        await enviarEmail(pagamento.payerEmail, "Pagamento Aprovado", `Seu pagamento de R$ ${pagamento.valor} foi aprovado com sucesso.`);
+        pagamento.status = response.data.status; // Atualiza o status
       }
-
-      // Salvar o status atualizado
-      fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
     }
+
+    fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
+    console.log("Status dos pagamentos atualizado com sucesso.");
   } catch (error) {
-    console.error("Erro ao atualizar status do pagamento:", error.message);
+    console.error("Erro ao atualizar status dos pagamentos:", error.message);
   }
 }
 
@@ -181,31 +151,8 @@ app.post("/verificar-status", async (req, res) => {
   }
 });
 
-// Rota para enviar o e-mail
-app.post("/enviar-email", async (req, res) => {
-  const { to, subject, text } = req.body;
-  if (!to || !subject || !text) {
-    return res.status(400).json({ error: "Informações de e-mail incompletas" });
-  }
-
-  try {
-    // Lógica para enviar o e-mail via API de e-mail
-    console.log(`Enviando e-mail para ${to} com o assunto: ${subject}`);
-    res.status(200).json({ message: "E-mail enviado com sucesso" });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao enviar e-mail" });
-  }
-});
-
-// Função para atualizar automaticamente os pagamentos a cada 5 segundos
-setInterval(() => {
-  const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
-  pagamentos.forEach(pagamento => {
-    if (pagamento.status !== "approved") {
-      atualizarStatusPagamento(pagamento.txid);
-    }
-  });
-}, 5000);
+// Configuração para atualizar automaticamente os pagamentos a cada 60 segundos
+setInterval(atualizarStatusPagamentos, 60000);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
