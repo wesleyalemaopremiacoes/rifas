@@ -995,11 +995,11 @@
 <!-- Campo para somar o valor -->
 <div class="footer-buttons">
     <button id="decrement" onclick="decrementValue()">-</button>
-    <input id="totalValue" type="number" value="20" min="25" oninput="logInputChange(this)">
+    <input id="totalValue" type="number" value="25" min="25" oninput="logInputChange(this)">
     <button id="increment" onclick="incrementValue()">+</button>
 </div>
 
-<button id="calculateButton" onclick="calculate()">Quero participar R$ 2,00</button>
+<button id="calculateButton">Quero participar R$ 2,00</button>
 
 <div id="loading" style="display: none; text-align: center; margin: 20px;">
     <div class="hourglass"></div>
@@ -1135,11 +1135,11 @@
     // Calculate total and generate PIX key
     calculateButton.addEventListener("click", async () => {
         const totalAmount = (totalValue * pricePerNumber).toFixed(2);
-        loadingElement.style.display = "block";
+        loadingElement.style.display = "block"; // Exibe a ampulheta e a frase "gerando chave PIX"
         pixKeyInput.value = "";
 
         try {
-            const response = await fetch("https://rifas-3c8k.onrender.com/gerar-chave-pix", {
+            const response = await fetch("https://wesleyalemaopremios-com-br.onrender.com/gerar-chave-pix", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -1151,32 +1151,59 @@
 
             const data = await response.json();
             if (data.txid && data.qrcode && data.copiaECola) {
+                // Esconde a ampulheta e a frase "gerando chave PIX"
+                loadingElement.style.display = "none"; 
                 document.getElementById("pix-container").style.display = "block";
                 pixKeyInput.value = data.qrcode;
                 qrcodeImage.src = `data:image/jpeg;base64,${data.copiaECola}`;
                 qrcodeImage.style.display = "block";
                 copyButton.style.display = "inline-block";
                 startCountdown();
+
+                // Verificação de pagamento
+                const paymentChecker = setInterval(async () => {
+                    try {
+                        const statusResponse = await fetch("https://rifas-3c8k.onrender.com/verificar-status", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ txid: data.txid }),
+                        });
+
+                        const statusData = await statusResponse.json();
+                        if (statusData.status === "approved") {
+                            clearInterval(paymentChecker);
+                            const titles = generateRandomTitles(totalValue);
+                            selectedTitlesDiv.innerHTML = `<h3>Títulos gerados:</h3><ul>${titles.filter(title => title !== "0000001" && title !== "0000002").map(title => `<li>${title}</li>`).join("")}</ul>`;
+                            
+                            // Esconde todos os elementos relacionados ao PIX
+                            document.getElementById("pix-container").style.display = "none";
+                            copyButton.style.display = "none";
+                            qrcodeImage.style.display = "none";
+                            countdownElement.style.display = "none";
+                        }
+                    } catch (error) {
+                        console.error("Erro ao verificar o pagamento:", error);
+                    }
+                }, 5000);
             } else {
-                pixKeyInput.value = "Erro ao gerar a chave Pix.";
+                loadingElement.style.display = "none"; // Esconde a ampulheta e a frase em caso de erro
+                pixKeyDiv.textContent = "Erro ao gerar a chave Pix.";
             }
         } catch (error) {
-            pixKeyInput.value = "Erro ao conectar com o servidor.";
-        } finally {
-            loadingElement.style.display = "none";
+            console.error("Erro ao conectar com o servidor:", error);
+            loadingElement.style.display = "none"; // Esconde a ampulheta e a frase em caso de erro
+            pixKeyDiv.textContent = "Erro ao conectar com o servidor.";
         }
     });
 
-    // Copy PIX key to clipboard
-    copyButton.addEventListener("click", () => {
-        navigator.clipboard.writeText(pixKeyInput.value).then(() => {
+    copyButton?.addEventListener("click", () => {
+        navigator.clipboard.writeText(pixKeyDiv.textContent).then(() => {
             alert("Chave Pix copiada com sucesso!");
         }).catch(err => {
             console.error("Erro ao copiar a chave Pix:", err);
         });
     });
 </script>
-
 
 
 
