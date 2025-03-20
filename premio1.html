@@ -1196,12 +1196,13 @@
     });
 
     copyButton?.addEventListener("click", () => {
-        navigator.clipboard.writeText(pixKeyDiv.textContent).then(() => {
-            alert("Chave Pix copiada com sucesso!");
-        }).catch(err => {
-            console.error("Erro ao copiar a chave Pix:", err);
-        });
+    const pixKeyValue = pixKeyInput.value; // Obtém o valor da chave Pix do campo de entrada
+    navigator.clipboard.writeText(pixKeyValue).then(() => {
+        alert("Chave Pix copiada com sucesso!");
+    }).catch(err => {
+        console.error("Erro ao copiar a chave Pix:", err);
     });
+});
 </script>
 
 
