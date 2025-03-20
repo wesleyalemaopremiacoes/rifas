@@ -1197,12 +1197,12 @@
     });
 
     copyButton?.addEventListener("click", () => {
-        navigator.clipboard.writeText(pixKeyDiv.textContent).then(() => {
-            alert("Chave Pix copiada com sucesso!");
-        }).catch(err => {
-            console.error("Erro ao copiar a chave Pix:", err);
-        });
+    navigator.clipboard.writeText(pixKeyDiv.textContent).then(() => {
+        alert("Chave Pix copiada com sucesso!");
+    }).catch(err => {
+        console.error("Erro ao copiar a chave Pix:", err);
     });
+});
 </script>
 
 
