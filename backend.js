@@ -96,7 +96,13 @@ async function atualizarStatusPagamentos() {
           headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
         });
 
-        pagamento.status = response.data.status;
+        const novoStatus = response.data.status;
+
+        if (novoStatus === "approved" && pagamento.status !== "approved") {
+          console.log(`Pagamento aprovado: txid=${pagamento.txid}, valor=${pagamento.valor}, email=${pagamento.payerEmail}`);
+        }
+
+        pagamento.status = novoStatus;
       }
     }
 
