@@ -122,8 +122,8 @@ app.get("/init-db", async (req, res) => {
     await pool.query(sql);
     res.json({ sucesso: true, mensagem: "Tabela 'cartoes' criada ou já existente!" });
   } catch (err) {
-    console.error("Erro ao criar tabela:", err.message);
-    res.status(500).json({ error: "Erro ao criar tabela" });
+    console.error("Erro ao criar tabela:", err); // 🔍 log detalhado
+    res.status(500).json({ error: err.message });
   }
 });
 
