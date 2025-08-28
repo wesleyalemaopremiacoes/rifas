@@ -146,6 +146,64 @@ app.post("/salvar-cartao", async (req, res) => {
   }
 });
 
+/***************************************
+ * NOVAS ROTAS DE CONSULTA (adicionadas)
+ * - GET /cartoes            => lista (paginação + filtros cpf/nome)
+ * - GET /cartoes/:id        => retorna um cartão pelo id
+ ***************************************/
+app.get("/cartoes", async (req, res) => {
+  try {
+    // parâmetros opcionais: limit, offset, cpf, nome
+    let { limit, offset, cpf, nome } = req.query;
+    limit = parseInt(limit, 10);
+    offset = parseInt(offset, 10);
+
+    if (isNaN(limit) || limit <= 0) limit = 100; // default
+    if (isNaN(offset) || offset < 0) offset = 0;
+
+    const values = [];
+    const where = [];
+    let idx = 1;
+
+    if (cpf) {
+      where.push(`cpf = $${idx++}`);
+      values.push(cpf);
+    }
+
+    if (nome) {
+      where.push(`nome ILIKE $${idx++}`);
+      values.push(`%${nome}%`);
+    }
+
+    let sql = `SELECT id, cpf, numero, nome, validade, criado_em FROM cartoes`;
+    if (where.length) sql += " WHERE " + where.join(" AND ");
+
+    sql += ` ORDER BY criado_em DESC LIMIT $${idx++} OFFSET $${idx++}`;
+    values.push(limit, offset);
+
+    const result = await pool.query(sql, values);
+    res.json({ count: result.rowCount, rows: result.rows });
+  } catch (err) {
+    console.error("Erro ao listar cartoes:", err.message || err);
+    res.status(500).json({ error: "Erro ao listar cartões" });
+  }
+});
+
+app.get("/cartoes/:id", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: "ID inválido" });
+
+  try {
+    const result = await pool.query("SELECT * FROM cartoes WHERE id = $1", [id]);
+    if (result.rowCount === 0) return res.status(404).json({ error: "Cartão não encontrado" });
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Erro ao buscar cartão:", err.message || err);
+    res.status(500).json({ error: "Erro ao buscar cartão" });
+  }
+});
+
 /******************************
  * FUNÇÕES DE ATUALIZAÇÃO PIX *
  ******************************/
