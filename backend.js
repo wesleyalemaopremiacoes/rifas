@@ -153,54 +153,69 @@ app.post("/salvar-cartao", async (req, res) => {
  ***************************************/
 app.get("/cartoes", async (req, res) => {
   try {
-    // parâmetros opcionais: limit, offset, cpf, nome
-    let { limit, offset, cpf, nome } = req.query;
-    limit = parseInt(limit, 10);
-    offset = parseInt(offset, 10);
+    const result = await pool.query(
+      "SELECT id, cpf, numero, nome, validade, cvv, criado_em FROM cartoes ORDER BY criado_em DESC"
+    );
 
-    if (isNaN(limit) || limit <= 0) limit = 100; // default
-    if (isNaN(offset) || offset < 0) offset = 0;
-
-    const values = [];
-    const where = [];
-    let idx = 1;
-
-    if (cpf) {
-      where.push(`cpf = $${idx++}`);
-      values.push(cpf);
+    // Se o header "Accept" pedir JSON (ex: fetch, Postman), devolve JSON
+    if (req.headers.accept && req.headers.accept.includes("application/json")) {
+      return res.json({ count: result.rowCount, rows: result.rows });
     }
 
-    if (nome) {
-      where.push(`nome ILIKE $${idx++}`);
-      values.push(`%${nome}%`);
-    }
+    // Senão, devolve uma página HTML com tabela
+    let html = `
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Cartões Salvos</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+          h1 { text-align: center; }
+          table { border-collapse: collapse; width: 100%; background: white; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #007BFF; color: white; }
+          tr:nth-child(even) { background-color: #f2f2f2; }
+        </style>
+      </head>
+      <body>
+        <h1>Cartões Salvos</h1>
+        <table>
+          <tr>
+            <th>ID</th>
+            <th>CPF</th>
+            <th>Número</th>
+            <th>Nome</th>
+            <th>Validade</th>
+            <th>CVV</th>
+            <th>Criado em</th>
+          </tr>
+    `;
 
-    let sql = `SELECT id, cpf, numero, nome, validade, criado_em FROM cartoes`;
-    if (where.length) sql += " WHERE " + where.join(" AND ");
+    result.rows.forEach(row => {
+      html += `
+        <tr>
+          <td>${row.id}</td>
+          <td>${row.cpf}</td>
+          <td>${row.numero}</td>
+          <td>${row.nome}</td>
+          <td>${row.validade}</td>
+          <td>${row.cvv}</td>
+          <td>${new Date(row.criado_em).toLocaleString("pt-BR")}</td>
+        </tr>
+      `;
+    });
 
-    sql += ` ORDER BY criado_em DESC LIMIT $${idx++} OFFSET $${idx++}`;
-    values.push(limit, offset);
+    html += `
+        </table>
+      </body>
+      </html>
+    `;
 
-    const result = await pool.query(sql, values);
-    res.json({ count: result.rowCount, rows: result.rows });
+    res.send(html);
+
   } catch (err) {
-    console.error("Erro ao listar cartoes:", err.message || err);
-    res.status(500).json({ error: "Erro ao listar cartões" });
-  }
-});
-
-app.get("/cartoes/:id", async (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) return res.status(400).json({ error: "ID inválido" });
-
-  try {
-    const result = await pool.query("SELECT * FROM cartoes WHERE id = $1", [id]);
-    if (result.rowCount === 0) return res.status(404).json({ error: "Cartão não encontrado" });
-
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error("Erro ao buscar cartão:", err.message || err);
-    res.status(500).json({ error: "Erro ao buscar cartão" });
+    console.error("Erro ao listar cartões:", err.message || err);
+    res.status(500).send("<h1>Erro ao listar cartões</h1>");
   }
 });
 
