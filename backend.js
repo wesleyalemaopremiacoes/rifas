@@ -51,15 +51,16 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
 
     const qrcodeData = {
       txid: response.data.id,
-      qrcode: response.data.point_of_interaction.transaction_data.qr_code,
-      copiaECola: response.data.point_of_interaction.transaction_data.qr_code_base64,
-      valor,
-      payerEmail,
-      payerCpf,
-      status: "pendente",
-    };
-
-    console.log(`Chave PIX gerada: ${JSON.stringify(qrcodeData)}`);
+      const qrcodeData = {
+  txid: response.data.id,
+  qrcodeBase64: response.data.point_of_interaction.transaction_data.qr_code_base64, // imagem
+  copiaECola: response.data.point_of_interaction.transaction_data.qr_code, // texto copia e cola
+  valor,
+  payerEmail,
+  payerCpf,
+  status: "pendente",
+};
+      console.log(`Chave PIX gerada: ${JSON.stringify(qrcodeData)}`);
     return qrcodeData;
   } catch (error) {
     console.error("Erro ao gerar chave PIX:", error.response?.data || error.message);
