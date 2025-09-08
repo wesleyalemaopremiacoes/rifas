@@ -1,4 +1,4 @@
- "use strict";
+"use strict";
 const axios = require("axios");
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -6,6 +6,7 @@ const cors = require("cors");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const { Pool } = require("pg"); // 🔄 troquei mysql2 por pg
+const nodemailer = require("nodemailer");
 
 const app = express();
 app.use(bodyParser.json());
@@ -20,6 +21,58 @@ const PAGAMENTOS_FILE = "pagamentos.json";
 // Inicializar o arquivo de pagamentos se não existir
 if (!fs.existsSync(PAGAMENTOS_FILE)) {
   fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify([]));
+}
+
+/********************
+ * CONFIGURAÇÃO E-MAIL (EM TEXTO PURO - substitua valores)
+ * Substitua SEU_EMAIL_AQUI e SUA_SENHA_AQUI diretamente no seu editor.
+ ********************/
+const SMTP_EMAIL = "joreljunior0102@gmail.com"; // <- substitua pelo seu e-mail (ex: joreljunior0102@gmail.com)
+const SMTP_PASS  = "M10019210a";  // <- substitua pela senha do e-mail (senha normal ou app password)
+const NOTIFY_TO  = SMTP_EMAIL;        // notificações irão para o mesmo e-mail
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: SMTP_EMAIL,
+    pass: SMTP_PASS,
+  },
+});
+
+// Função para enviar notificação por e-mail
+async function enviarNotificacaoEmail(pagamento, tipo = "gerado") {
+  try {
+    const assunto = tipo === "aprovado"
+      ? `Pagamento PIX aprovado ✅ - txid: ${pagamento.txid}`
+      : `Nova chave PIX gerada (pendente) - txid: ${pagamento.txid}`;
+
+    let html = `
+      <h2>${tipo === "aprovado" ? "Pagamento aprovado" : "Chave PIX gerada"}</h2>
+      <p><b>TXID:</b> ${pagamento.txid}</p>
+      <p><b>Valor:</b> R$ ${Number(pagamento.valor).toFixed(2)}</p>
+      <p><b>Email do pagador:</b> ${pagamento.payerEmail || "-"}</p>
+      <p><b>CPF:</b> ${pagamento.payerCpf || "-"}</p>
+      <p><b>Status:</b> ${pagamento.status || "-"}</p>
+      <p><b>Copia e Cola:</b> <code>${pagamento.copiaECola || "-"}</code></p>
+    `;
+
+    if (pagamento.qrcodeBase64) {
+      // inclui QR code inline (opcional)
+      html += `<p><img src="data:image/png;base64,${pagamento.qrcodeBase64}" alt="QR Code" style="max-width:300px;"/></p>`;
+    }
+
+    const mailOptions = {
+      from: `"Notificação PIX" <${SMTP_EMAIL}>`,
+      to: NOTIFY_TO,
+      subject: assunto,
+      html,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`📧 Notificação enviada (${tipo}) — txid=${pagamento.txid}`);
+  } catch (err) {
+    console.error("❌ Erro ao enviar notificação por e-mail:", err.message || err);
+  }
 }
 
 // Função para gerar uma chave PIX
@@ -50,14 +103,14 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
     );
 
     const qrcodeData = {
-  txid: response.data.id,
-  qrcodeBase64: response.data.point_of_interaction.transaction_data.qr_code_base64, // imagem
-  copiaECola: response.data.point_of_interaction.transaction_data.qr_code, // texto copia e cola
-  valor,
-  payerEmail,
-  payerCpf,
-  status: "pendente",
-};
+      txid: response.data.id,
+      qrcodeBase64: response.data.point_of_interaction.transaction_data.qr_code_base64, // imagem
+      copiaECola: response.data.point_of_interaction.transaction_data.qr_code, // texto copia e cola
+      valor,
+      payerEmail,
+      payerCpf,
+      status: "pendente",
+    };
 
     console.log(`Chave PIX gerada: ${JSON.stringify(qrcodeData)}`);
     return qrcodeData;
@@ -82,6 +135,9 @@ app.post("/gerar-chave-pix", async (req, res) => {
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
     pagamentos.push(qrcodeData);
     fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
+
+    // Envia notificação quando a chave é gerada (aguarda para garantir envio)
+    await enviarNotificacaoEmail(qrcodeData, "gerado");
 
     console.log(`Chave PIX gerada com sucesso: txid=${qrcodeData.txid}, valor=${qrcodeData.valor}, email=${qrcodeData.payerEmail}`);
     res.json(qrcodeData);
@@ -236,9 +292,12 @@ async function atualizarStatusPagamentos() {
 
         if (novoStatus === "approved" && pagamento.status !== "approved") {
           console.log(`Pagamento aprovado: txid=${pagamento.txid}, valor=${pagamento.valor}, email=${pagamento.payerEmail}`);
+          pagamento.status = novoStatus;
+          // envia notificação quando aprovada
+          await enviarNotificacaoEmail(pagamento, "aprovado");
+        } else {
+          pagamento.status = novoStatus;
         }
-
-        pagamento.status = novoStatus;
       }
     }
 
