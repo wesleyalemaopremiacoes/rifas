@@ -7,10 +7,19 @@ const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const { Pool } = require("pg");
 const nodemailer = require("nodemailer");
+const mysql = require('mysql2/promise');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
+
+// === Logging middleware para debug (method, path, body) ===
+app.use((req, res, next) => {
+  try {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} body=${JSON.stringify(req.body || {})}`);
+  } catch(e) { /* ignore logging errors */ }
+  next();
+});
 
 /********************
  * CONFIGURAÇÃO PIX *
@@ -75,7 +84,7 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
   try {
     const idempotencyKey = uuidv4();
     const response = await axios.post(
-      "https://api.mercadopago.com/v1/payments", // ✅ endpoint antigo que funcionava
+      "https://api.mercadopago.com/v1/payments",
       {
         transaction_amount: valor,
         description: "Pagamento via PIX",
@@ -127,7 +136,6 @@ app.post("/gerar-chave-pix", async (req, res) => {
     pagamentos.push(qrcodeData);
     fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
 
-    // envia e-mail sem bloquear a resposta
     enviarNotificacaoEmail(qrcodeData, "gerado").catch(e => console.error(e));
 
     res.json(qrcodeData);
@@ -162,6 +170,7 @@ app.post("/verificar-status", async (req, res) => {
     res.json({ status });
 
   } catch (error) {
+    console.error("Erro verificar-status:", error?.response?.data || error?.message || error);
     res.status(500).json({ error: "Erro ao verificar status do pagamento" });
   }
 });
@@ -194,9 +203,6 @@ async function atualizarStatusPagamentos() {
   }
 }
 
-/********************
- * INTERVALOS AUTOMÁTICOS *
- ********************/
 setInterval(atualizarStatusPagamentos, 60000);
 
 /********************
@@ -257,8 +263,6 @@ app.get("/cartoes", async (req, res) => {
 });
 
 // ===== INÍCIO - Integração MySQL para a Rifa =====
-const mysql = require('mysql2/promise');
-
 // Config MySQL (use VARS de ambiente em produção)
 const MYSQL_CONFIG = {
   host: process.env.MYSQL_HOST || "sql111.infinityfree.com",
@@ -304,92 +308,88 @@ app.get("/rifa/numero/:numero", async (req, res) => {
   }
 });
 
-/*
-POST /rifa/reservar
-Body:
-{
-  "quantidade": 5,
-  "userId": 123,            // id do usuário (da sessão PHP passado pelo front)
-  "txid": "abc123",        // txid do PIX (confirmado)
-  // opcional (o backend buscará buyer_name e telefone pela tabela usuarios)
-  // "buyer_name": "Nome",
-  // "phone_last4": "9999"
-}
-Retorna: { reserved: [5, 22, 90, ...] }
-*/
-app.post("/rifa/reservar", async (req, res) => {
+// --- refatorei o handler em função para reuso e debug ---
+async function reserveHandler(req, res) {
   const { quantidade, userId, txid, buyer_name, phone_last4 } = req.body;
-  if (!quantidade || !Number.isInteger(quantidade) || quantidade <= 0) return res.status(400).json({ error: "quantidade inválida" });
-  if (!txid) return res.status(400).json({ error: "txid é obrigatório" });
-  if (!userId) return res.status(400).json({ error: "userId é obrigatório" });
-
-  const conn = await mysqlPool.getConnection();
   try {
-    await conn.beginTransaction();
+    if (!quantidade || !Number.isInteger(quantidade) || quantidade <= 0) return res.status(400).json({ error: "quantidade inválida" });
+    if (!txid) return res.status(400).json({ error: "txid é obrigatório" });
+    if (!userId) return res.status(400).json({ error: "userId é obrigatório" });
 
-    // 1) Ler dados do usuário (pegar nome e telefone caso não tenha vindo no body)
-    let buyerName = buyer_name || null;
-    let phoneLast4 = phone_last4 || null;
+    const conn = await mysqlPool.getConnection();
+    try {
+      await conn.beginTransaction();
 
-    if (!buyerName || !phoneLast4) {
-      const [userRows] = await conn.query(
-        "SELECT id, nome, telefone FROM usuarios WHERE id = ? LIMIT 1",
-        [userId]
-      );
-      if (userRows.length === 0) {
+      // Ler dados do usuário se necessário
+      let buyerName = buyer_name || null;
+      let phoneLast4 = phone_last4 || null;
+
+      if (!buyerName || !phoneLast4) {
+        const [userRows] = await conn.query(
+          "SELECT id, nome, telefone FROM usuarios WHERE id = ? LIMIT 1",
+          [userId]
+        );
+        if (userRows.length === 0) {
+          await conn.rollback();
+          return res.status(404).json({ error: "Usuário não encontrado" });
+        }
+        if (!buyerName) buyerName = String(userRows[0].nome || "Comprador");
+        if (!phoneLast4 && userRows[0].telefone) {
+          const t = String(userRows[0].telefone || "");
+          phoneLast4 = t.length >= 4 ? t.slice(-4) : t;
+        }
+      }
+
+      // Bloquear tabela e ler ocupados
+      const [takenRows] = await conn.query("SELECT numero FROM rifa_numeros FOR UPDATE");
+      const takenSet = new Set(takenRows.map(r => r.numero));
+      const available = [];
+      for (let i = 1; i <= 300; i++) if (!takenSet.has(i)) available.push(i);
+
+      if (available.length < quantidade) {
         await conn.rollback();
-        return res.status(404).json({ error: "Usuário não encontrado" });
+        return res.status(409).json({ error: "Números insuficientes disponíveis", available: available.length });
       }
-      if (!buyerName) buyerName = String(userRows[0].nome || "Comprador");
-      if (!phoneLast4 && userRows[0].telefone) {
-        const t = String(userRows[0].telefone || "");
-        phoneLast4 = t.length >= 4 ? t.slice(-4) : t;
+
+      // Escolher aleatórios
+      const chosen = [];
+      while (chosen.length < quantidade) {
+        const idx = Math.floor(Math.random() * available.length);
+        chosen.push(available.splice(idx, 1)[0]);
       }
-    }
 
-    // 2) Bloquear tabela rifa_numeros para consistência e pegar números já ocupados
-    // (SELECT ... FOR UPDATE para evitar race condition)
-    const [takenRows] = await conn.query("SELECT numero FROM rifa_numeros FOR UPDATE");
-    const takenSet = new Set(takenRows.map(r => r.numero));
+      // Inserir
+      for (const numero of chosen) {
+        await conn.query(
+          "INSERT INTO rifa_numeros (numero, user_id, buyer_name, phone_last4, txid) VALUES (?,?,?,?,?)",
+          [numero, userId, buyerName, phoneLast4, txid]
+        );
+      }
 
-    // 3) Montar lista de disponíveis
-    const available = [];
-    for (let i = 1; i <= 300; i++) if (!takenSet.has(i)) available.push(i);
-
-    if (available.length < quantidade) {
+      await conn.commit();
+      console.log(`Reserva OK userId=${userId} txid=${txid} números=${JSON.stringify(chosen)}`);
+      return res.json({ reserved: chosen });
+    } catch (errInner) {
       await conn.rollback();
-      return res.status(409).json({ error: "Números insuficientes disponíveis", available: available.length });
+      console.error("Erro /rifa/reservar (inner):", errInner && errInner.stack ? errInner.stack : errInner);
+      if (errInner && errInner.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({ error: "Conflito ao reservar (repetição de número). Tente novamente." });
+      }
+      return res.status(500).json({ error: "Erro interno ao reservar números", details: String(errInner && errInner.stack).split("\n").slice(0,5).join("\\n") });
+    } finally {
+      conn.release();
     }
-
-    // 4) Escolher números aleatórios
-    const chosen = [];
-    while (chosen.length < quantidade) {
-      const idx = Math.floor(Math.random() * available.length);
-      chosen.push(available.splice(idx, 1)[0]);
-    }
-
-    // 5) Inserir no banco (cada numero => uma linha). Se houver PK conflict, tratamos.
-    for (const numero of chosen) {
-      await conn.query(
-        "INSERT INTO rifa_numeros (numero, user_id, buyer_name, phone_last4, txid) VALUES (?,?,?,?,?)",
-        [numero, userId, buyerName, phoneLast4, txid]
-      );
-    }
-
-    await conn.commit();
-    res.json({ reserved: chosen });
-  } catch (err) {
-    await conn.rollback();
-    console.error("Erro /rifa/reservar:", err.message || err);
-    // Se foi conflito de chave primária, respondemos 409
-    if (err && err.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ error: "Conflito ao reservar (repetição de número). Tente novamente." });
-    }
-    res.status(500).json({ error: "Erro interno ao reservar números" });
-  } finally {
-    conn.release();
+  } catch (errOuter) {
+    console.error("Erro /rifa/reservar (outer):", errOuter && errOuter.stack ? errOuter.stack : errOuter);
+    return res.status(500).json({ error: "Erro interno ao reservar (outer)", details: String(errOuter && errOuter.stack).split("\n").slice(0,5).join("\\n") });
   }
-});
+}
+
+// Registrar o mesmo handler em múltiplos caminhos (aliases) para evitar 404 por variações
+app.post("/rifa/reservar", reserveHandler);
+app.post("/reservar", reserveHandler);
+app.post("/rifas/reservar", reserveHandler);
+
 // ===== FIM - Integração MySQL para a Rifa =====
 
 /********************
