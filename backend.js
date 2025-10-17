@@ -24,7 +24,7 @@ app.use((req, res, next) => {
 /********************
  * CONFIGURAÇÃO PIX *
  ********************/
-const ACCESS_TOKEN = "APP_USR-7155153166578433-022021-bb77c63cb27d3d05616d5c08e09077cf-502781407";
+const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || "APP_USR-7155153166578433-022021-bb77c63cb27d3d05616d5c08e09077cf-502781407";
 const PAGAMENTOS_FILE = "pagamentos.json";
 
 if (!fs.existsSync(PAGAMENTOS_FILE)) {
@@ -34,9 +34,9 @@ if (!fs.existsSync(PAGAMENTOS_FILE)) {
 /********************
  * CONFIGURAÇÃO E-MAIL *
  ********************/
-const SMTP_EMAIL = "joreljunior0102@gmail.com";
-const SMTP_PASS  = "M10019210a";
-const NOTIFY_TO  = SMTP_EMAIL;
+const SMTP_EMAIL = process.env.SMTP_EMAIL || "joreljunior0102@gmail.com";
+const SMTP_PASS  = process.env.SMTP_PASS  || "M10019210a";
+const NOTIFY_TO   = process.env.NOTIFY_TO  || SMTP_EMAIL;
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -206,194 +206,219 @@ async function atualizarStatusPagamentos() {
 setInterval(atualizarStatusPagamentos, 60000);
 
 /********************
- * BANCO DE CARTÕES (Postgres) *
+ * POSTGRES POOL PARA RIFA (Render)
  ********************/
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+
+// URL completa do Postgres (você me passou) — recomenda-se usar VAR DE AMBIENTE
+const DEFAULT_RIFA_DB_URL = "postgresql://rifa_user:KPZADel5FKz3FcLOPDcx5pYoRD9lA9UV@dpg-d3ong26uk2gs73dpqtjg-a.oregon-postgres.render.com/rifas_db_lw07";
+const RIFA_DB_URL = process.env.RIFA_DB_URL || DEFAULT_RIFA_DB_URL;
+
+const poolRifa = new Pool({
+  connectionString: RIFA_DB_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-pool.connect()
-  .then(() => console.log("Conectado ao banco Postgres!"))
-  .catch(err => console.error("Erro de conexão com o banco:", err.message));
+// número máximo padrão por rifa (padrão 300). Pode ser sobrescrito com var de ambiente.
+const MAX_NUMBERS = process.env.RIFA_MAX_NUMBERS ? parseInt(process.env.RIFA_MAX_NUMBERS, 10) : 300;
 
-app.get("/init-db", async (req, res) => {
+// cria tabela rifa_numeros no Postgres se não existir
+async function ensureRifaTable() {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS rifa_numeros (
+      numero INTEGER PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      buyer_name VARCHAR(150) NOT NULL,
+      phone_last4 VARCHAR(4),
+      txid VARCHAR(128) NOT NULL,
+      comprado_em TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+  `;
   try {
-    const sql = `
-      CREATE TABLE IF NOT EXISTS cartoes (
-        id SERIAL PRIMARY KEY,
-        cpf VARCHAR(20) NOT NULL,
-        numero VARCHAR(20) NOT NULL,
-        nome VARCHAR(100) NOT NULL,
-        validade VARCHAR(10) NOT NULL,
-        cvv VARCHAR(5) NOT NULL,
-        criado_em TIMESTAMP DEFAULT NOW()
-      );
-    `;
-    await pool.query(sql);
-    res.json({ sucesso: true, mensagem: "Tabela 'cartoes' criada ou já existente!" });
+    await poolRifa.query(sql);
+    console.log("✅ Tabela rifa_numeros garantida no Postgres (Render).");
   } catch (err) {
-    console.error("ERRO AO CRIAR TABELA:", err);
-    res.status(500).json({ error: "Erro ao criar tabela, verifique o log do backend" });
+    console.error("❌ Erro ao garantir tabela rifa_numeros:", err);
+    process.exit(1);
   }
-});
+}
 
-app.post("/salvar-cartao", async (req, res) => {
-  const { cpf, numero, nome, validade, cvv } = req.body;
-  if (!cpf || !numero || !nome || !validade || !cvv) return res.status(400).json({ error: "Todos os campos são obrigatórios." });
-
-  try {
-    const sql = "INSERT INTO cartoes (cpf, numero, nome, validade, cvv) VALUES ($1,$2,$3,$4,$5)";
-    await pool.query(sql, [cpf, numero, nome, validade, cvv]);
-    res.json({ sucesso: true, mensagem: "Cartão salvo com sucesso!" });
-  } catch (err) {
-    console.error("Erro ao salvar cartão:", err.message);
-    res.status(500).json({ error: "Erro ao salvar cartão." });
-  }
-});
-
-app.get("/cartoes", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT id, cpf, numero, nome, validade, cvv, criado_em FROM cartoes ORDER BY criado_em DESC");
-    res.json({ count: result.rowCount, rows: result.rows });
-  } catch (err) {
-    console.error("Erro ao listar cartões:", err.message);
-    res.status(500).send("<h1>Erro ao listar cartões</h1>");
-  }
-});
-
-// ===== INÍCIO - Integração MySQL para a Rifa =====
-// Config MySQL (use VARS de ambiente em produção)
+/********************
+ * CONEXÃO MySQL (InfinityFree) PARA USUÁRIOS
+ ********************/
+// Só usado para SELECT na tabela usuarios (nome, telefone).
 const MYSQL_CONFIG = {
   host: process.env.MYSQL_HOST || "sql111.infinityfree.com",
   user: process.env.MYSQL_USER || "if0_40091435",
   password: process.env.MYSQL_PASS || "m10019210A",
   database: process.env.MYSQL_DB   || "if0_40091435_Fumacatech",
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 5,
   decimalNumbers: true
 };
 
 const mysqlPool = mysql.createPool(MYSQL_CONFIG);
 
-// Endpoint: retornar todos os números ocupados
+/********************
+ * ENDPOINTS RIFA (Postgres)
+ ********************/
+
+// retornar todos os números ocupados
 app.get("/rifa/numeros", async (req, res) => {
   try {
-    const [rows] = await mysqlPool.query(
-      "SELECT numero, buyer_name, phone_last4, txid, comprado_em FROM rifa_numeros ORDER BY numero ASC"
-    );
-    res.json(rows);
+    const { rows } = await poolRifa.query("SELECT numero, buyer_name, phone_last4, txid, comprado_em FROM rifa_numeros ORDER BY numero ASC");
+    return res.json(rows);
   } catch (err) {
-    console.error("Erro /rifa/numeros:", err.message || err);
-    res.status(500).json({ error: "Erro ao buscar números da rifa." });
+    console.error("Erro /rifa/numeros:", err);
+    return res.status(500).json({ error: "Erro ao buscar números da rifa", details: String(err) });
   }
 });
 
-// Endpoint: retornar dados de um número (para modal)
+// retornar dados de um número (para modal)
 app.get("/rifa/numero/:numero", async (req, res) => {
   try {
     const numero = parseInt(req.params.numero, 10);
-    if (!numero || numero < 1 || numero > 300) return res.status(400).json({ error: "Número inválido" });
+    if (!numero || numero < 1 || numero > MAX_NUMBERS) return res.status(400).json({ error: "Número inválido" });
 
-    const [rows] = await mysqlPool.query(
-      "SELECT numero, buyer_name, phone_last4, txid, comprado_em FROM rifa_numeros WHERE numero = ?",
+    const { rows } = await poolRifa.query(
+      "SELECT numero, buyer_name, phone_last4, txid, comprado_em FROM rifa_numeros WHERE numero = $1",
       [numero]
     );
 
     if (rows.length === 0) return res.status(404).json({ error: "Disponível" });
-    res.json(rows[0]);
+    return res.json(rows[0]);
   } catch (err) {
-    console.error("Erro /rifa/numero/:numero", err.message || err);
-    res.status(500).json({ error: "Erro ao buscar dados do número." });
+    console.error("Erro /rifa/numero/:numero", err);
+    return res.status(500).json({ error: "Erro ao buscar dados do número.", details: String(err) });
   }
 });
 
-// --- refatorei o handler em função para reuso e debug ---
-async function reserveHandler(req, res) {
-  const { quantidade, userId, txid, buyer_name, phone_last4 } = req.body;
+/*
+POST /rifa/reservar
+Body:
+{
+  "quantidade": 5,
+  "userId": 123,
+  "txid": "abc123",
+  // opcional:
+  // "buyer_name": "Nome",
+  // "phone_last4": "9999",
+  // "maxNumber": 500   <-- opcional, override do MAX_NUMBERS para esta compra/edicao
+}
+Retorna: { reserved: [5, 22, 90, ...] }
+*/
+app.post("/rifa/reservar", async (req, res) => {
+  const { quantidade, userId, txid, buyer_name, phone_last4, maxNumber } = req.body;
+  const maxNum = Number.isInteger(maxNumber) && maxNumber > 0 ? maxNumber : MAX_NUMBERS;
+
+  // validações básicas
+  if (!quantidade || !Number.isInteger(quantidade) || quantidade <= 0) return res.status(400).json({ error: "quantidade inválida" });
+  if (!txid) return res.status(400).json({ error: "txid é obrigatório" });
+  if (!userId) return res.status(400).json({ error: "userId é obrigatório" });
+  if (quantidade > maxNum) return res.status(400).json({ error: "quantidade maior que total de números da rifa" });
+
+  const client = await poolRifa.connect();
   try {
-    if (!quantidade || !Number.isInteger(quantidade) || quantidade <= 0) return res.status(400).json({ error: "quantidade inválida" });
-    if (!txid) return res.status(400).json({ error: "txid é obrigatório" });
-    if (!userId) return res.status(400).json({ error: "userId é obrigatório" });
+    await client.query("BEGIN");
 
-    const conn = await mysqlPool.getConnection();
-    try {
-      await conn.beginTransaction();
+    // 1) Ler dados do usuário na tabela usuarios (MySQL) se buyer_name/phone_last4 não vieram
+    let buyerName = buyer_name || null;
+    let phoneLast4 = phone_last4 || null;
 
-      // Ler dados do usuário se necessário
-      let buyerName = buyer_name || null;
-      let phoneLast4 = phone_last4 || null;
-
-      if (!buyerName || !phoneLast4) {
-        const [userRows] = await conn.query(
-          "SELECT id, nome, telefone FROM usuarios WHERE id = ? LIMIT 1",
-          [userId]
-        );
-        if (userRows.length === 0) {
-          await conn.rollback();
+    if (!buyerName || !phoneLast4) {
+      try {
+        const [userRows] = await mysqlPool.query("SELECT id, nome, telefone FROM usuarios WHERE id = ? LIMIT 1", [userId]);
+        if (!userRows || userRows.length === 0) {
+          await client.query("ROLLBACK");
           return res.status(404).json({ error: "Usuário não encontrado" });
         }
-        if (!buyerName) buyerName = String(userRows[0].nome || "Comprador");
-        if (!phoneLast4 && userRows[0].telefone) {
-          const t = String(userRows[0].telefone || "");
+        const u = userRows[0];
+        if (!buyerName) buyerName = String(u.nome || "Comprador");
+        if (!phoneLast4 && u.telefone) {
+          const t = String(u.telefone || "");
           phoneLast4 = t.length >= 4 ? t.slice(-4) : t;
         }
+      } catch (mysqlErr) {
+        await client.query("ROLLBACK");
+        console.error("Erro lendo usuario no MySQL:", mysqlErr);
+        return res.status(500).json({ error: "Erro ao ler usuário", details: String(mysqlErr) });
       }
-
-      // Bloquear tabela e ler ocupados
-      const [takenRows] = await conn.query("SELECT numero FROM rifa_numeros FOR UPDATE");
-      const takenSet = new Set(takenRows.map(r => r.numero));
-      const available = [];
-      for (let i = 1; i <= 300; i++) if (!takenSet.has(i)) available.push(i);
-
-      if (available.length < quantidade) {
-        await conn.rollback();
-        return res.status(409).json({ error: "Números insuficientes disponíveis", available: available.length });
-      }
-
-      // Escolher aleatórios
-      const chosen = [];
-      while (chosen.length < quantidade) {
-        const idx = Math.floor(Math.random() * available.length);
-        chosen.push(available.splice(idx, 1)[0]);
-      }
-
-      // Inserir
-      for (const numero of chosen) {
-        await conn.query(
-          "INSERT INTO rifa_numeros (numero, user_id, buyer_name, phone_last4, txid) VALUES (?,?,?,?,?)",
-          [numero, userId, buyerName, phoneLast4, txid]
-        );
-      }
-
-      await conn.commit();
-      console.log(`Reserva OK userId=${userId} txid=${txid} números=${JSON.stringify(chosen)}`);
-      return res.json({ reserved: chosen });
-    } catch (errInner) {
-      await conn.rollback();
-      console.error("Erro /rifa/reservar (inner):", errInner && errInner.stack ? errInner.stack : errInner);
-      if (errInner && errInner.code === 'ER_DUP_ENTRY') {
-        return res.status(409).json({ error: "Conflito ao reservar (repetição de número). Tente novamente." });
-      }
-      return res.status(500).json({ error: "Erro interno ao reservar números", details: String(errInner && errInner.stack).split("\n").slice(0,5).join("\\n") });
-    } finally {
-      conn.release();
     }
-  } catch (errOuter) {
-    console.error("Erro /rifa/reservar (outer):", errOuter && errOuter.stack ? errOuter.stack : errOuter);
-    return res.status(500).json({ error: "Erro interno ao reservar (outer)", details: String(errOuter && errOuter.stack).split("\n").slice(0,5).join("\\n") });
+
+    // 2) Bloquear tabela e pegar números já ocupados
+    // Seleciona todos os numeros existentes e faz FOR UPDATE para evitar race condition.
+    // (Isso garante que concorrência seja tratada na transação)
+    const selectTakenSql = "SELECT numero FROM rifa_numeros FOR UPDATE";
+    const takenRes = await client.query(selectTakenSql);
+    const takenSet = new Set(takenRes.rows.map(r => r.numero));
+
+    // 3) Montar lista de disponíveis
+    const available = [];
+    for (let i = 1; i <= maxNum; i++) {
+      if (!takenSet.has(i)) available.push(i);
+    }
+
+    if (available.length < quantidade) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ error: "Números insuficientes disponíveis", available: available.length });
+    }
+
+    // 4) Escolher números aleatórios
+    const chosen = [];
+    while (chosen.length < quantidade) {
+      const idx = Math.floor(Math.random() * available.length);
+      chosen.push(available.splice(idx, 1)[0]);
+    }
+
+    // 5) Inserir no Postgres (uma linha por número)
+    const insertSql = "INSERT INTO rifa_numeros (numero, user_id, buyer_name, phone_last4, txid) VALUES ($1,$2,$3,$4,$5)";
+    for (const numero of chosen) {
+      await client.query(insertSql, [numero, userId, buyerName, phoneLast4, txid]);
+    }
+
+    await client.query("COMMIT");
+    console.log(`Reserva OK userId=${userId} txid=${txid} números=${JSON.stringify(chosen)}`);
+    return res.json({ reserved: chosen });
+
+  } catch (err) {
+    try { await client.query("ROLLBACK"); } catch(e){ /* ignore */ }
+    console.error("Erro /rifa/reservar:", err && err.stack ? err.stack : err);
+    if (err && err.code === '23505') { // duplicate key in Postgres
+      return res.status(409).json({ error: "Conflito ao reservar (repetição de número). Tente novamente." });
+    }
+    return res.status(500).json({ error: "Erro interno ao reservar números", details: String(err).slice(0,2000) });
+  } finally {
+    client.release();
   }
-}
+});
 
-// Registrar o mesmo handler em múltiplos caminhos (aliases) para evitar 404 por variações
-app.post("/rifa/reservar", reserveHandler);
-app.post("/reservar", reserveHandler);
-app.post("/rifas/reservar", reserveHandler);
-
-// ===== FIM - Integração MySQL para a Rifa =====
+// aliases para evitar 404 por variações
+app.post("/reservar", async (req, res) => { return app._router.handle(req, res, () => {}, "/rifa/reservar"); });
+app.post("/rifas/reservar", async (req, res) => { return app._router.handle(req, res, () => {}, "/rifa/reservar"); });
 
 /********************
- * SERVIDOR *
+ * Inicialização / Start
  ********************/
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+(async function start() {
+  try {
+    // garante tabela de rifa
+    await ensureRifaTable();
+
+    // testa conexões MySQL e Postgres
+    try {
+      await mysqlPool.getConnection().then(conn=>conn.release());
+      console.log("Conectado ao MySQL (InfinityFree) para usuários.");
+    } catch (mysqlErr) {
+      console.warn("Não foi possível conectar ao MySQL (usuarios). Verifique credenciais. Erro:", mysqlErr.message || mysqlErr);
+      // não encerra; talvez só queira testar offline
+    }
+
+    await poolRifa.query("SELECT 1");
+    console.log("Conectado ao Postgres (Render) para rifa.");
+
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+  } catch (err) {
+    console.error("Erro na inicialização do backend:", err);
+    process.exit(1);
+  }
+})();
