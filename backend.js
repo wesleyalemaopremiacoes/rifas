@@ -7,7 +7,6 @@ const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const { Pool } = require("pg");
 const nodemailer = require("nodemailer");
-const mysql = require('mysql2/promise');
 
 const app = express();
 app.use(bodyParser.json());
@@ -209,7 +208,7 @@ setInterval(atualizarStatusPagamentos, 60000);
  * POSTGRES POOL PARA RIFA (Render)
  ********************/
 
-// URL completa do Postgres (você me passou) — recomenda-se usar VAR DE AMBIENTE
+// URL completa do Postgres (recomenda-se usar VAR DE AMBIENTE)
 const DEFAULT_RIFA_DB_URL = "postgresql://rifa_user:KPZADel5FKz3FcLOPDcx5pYoRD9lA9UV@dpg-d3ong26uk2gs73dpqtjg-a.oregon-postgres.render.com/rifas_db_lw07";
 const RIFA_DB_URL = process.env.RIFA_DB_URL || DEFAULT_RIFA_DB_URL;
 
@@ -243,20 +242,30 @@ async function ensureRifaTable() {
 }
 
 /********************
- * CONEXÃO MySQL (InfinityFree) PARA USUÁRIOS
+ * CRIAR/INSERIR TABELA usuarios NO MESMO POSTGRES
+ * estrutura idêntica ao print do phpMyAdmin (MySQL)
  ********************/
-// Só usado para SELECT na tabela usuarios (nome, telefone).
-const MYSQL_CONFIG = {
-  host: process.env.MYSQL_HOST || "sql111.infinityfree.com",
-  user: process.env.MYSQL_USER || "if0_40091435",
-  password: process.env.MYSQL_PASS || "m10019210A",
-  database: process.env.MYSQL_DB   || "if0_40091435_Fumacatech",
-  waitForConnections: true,
-  connectionLimit: 5,
-  decimalNumbers: true
-};
-
-const mysqlPool = mysql.createPool(MYSQL_CONFIG);
+async function ensureUsuariosTable() {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS usuarios (
+      id SERIAL PRIMARY KEY,
+      nome VARCHAR(100) NOT NULL,
+      email VARCHAR(150) UNIQUE NOT NULL,
+      telefone VARCHAR(20),
+      senha VARCHAR(255) NOT NULL,
+      codigo_confirmacao INTEGER,
+      confirmado BOOLEAN DEFAULT FALSE,
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+  try {
+    await poolRifa.query(sql);
+    console.log("✅ Tabela usuarios garantida no Postgres (Render).");
+  } catch (err) {
+    console.error("❌ Erro ao garantir tabela usuarios:", err);
+    process.exit(1);
+  }
+}
 
 /********************
  * ENDPOINTS RIFA (Postgres)
@@ -320,13 +329,13 @@ app.post("/rifa/reservar", async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // 1) Ler dados do usuário na tabela usuarios (MySQL) se buyer_name/phone_last4 não vieram
+    // 1) Ler dados do usuário na tabela usuarios (Postgres) se buyer_name/phone_last4 não vieram
     let buyerName = buyer_name || null;
     let phoneLast4 = phone_last4 || null;
 
     if (!buyerName || !phoneLast4) {
       try {
-        const [userRows] = await mysqlPool.query("SELECT id, nome, telefone FROM usuarios WHERE id = ? LIMIT 1", [userId]);
+        const { rows: userRows } = await client.query("SELECT id, nome, telefone FROM usuarios WHERE id = $1 LIMIT 1", [userId]);
         if (!userRows || userRows.length === 0) {
           await client.query("ROLLBACK");
           return res.status(404).json({ error: "Usuário não encontrado" });
@@ -337,16 +346,14 @@ app.post("/rifa/reservar", async (req, res) => {
           const t = String(u.telefone || "");
           phoneLast4 = t.length >= 4 ? t.slice(-4) : t;
         }
-      } catch (mysqlErr) {
+      } catch (pgErr) {
         await client.query("ROLLBACK");
-        console.error("Erro lendo usuario no MySQL:", mysqlErr);
-        return res.status(500).json({ error: "Erro ao ler usuário", details: String(mysqlErr) });
+        console.error("Erro lendo usuario no Postgres:", pgErr);
+        return res.status(500).json({ error: "Erro ao ler usuário", details: String(pgErr) });
       }
     }
 
     // 2) Bloquear tabela e pegar números já ocupados
-    // Seleciona todos os numeros existentes e faz FOR UPDATE para evitar race condition.
-    // (Isso garante que concorrência seja tratada na transação)
     const selectTakenSql = "SELECT numero FROM rifa_numeros FOR UPDATE";
     const takenRes = await client.query(selectTakenSql);
     const takenSet = new Set(takenRes.rows.map(r => r.numero));
@@ -400,20 +407,13 @@ app.post("/rifas/reservar", async (req, res) => { return app._router.handle(req,
  ********************/
 (async function start() {
   try {
-    // garante tabela de rifa
+    // garante tabela de rifa e usuarios
     await ensureRifaTable();
+    await ensureUsuariosTable();
 
-    // testa conexões MySQL e Postgres
-    try {
-      await mysqlPool.getConnection().then(conn=>conn.release());
-      console.log("Conectado ao MySQL (InfinityFree) para usuários.");
-    } catch (mysqlErr) {
-      console.warn("Não foi possível conectar ao MySQL (usuarios). Verifique credenciais. Erro:", mysqlErr.message || mysqlErr);
-      // não encerra; talvez só queira testar offline
-    }
-
+    // testa conexão Postgres
     await poolRifa.query("SELECT 1");
-    console.log("Conectado ao Postgres (Render) para rifa.");
+    console.log("Conectado ao Postgres (Render) para rifa e usuarios.");
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
