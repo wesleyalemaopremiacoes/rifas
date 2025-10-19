@@ -43,6 +43,7 @@ const transporter = nodemailer.createTransport({
   auth: { user: SMTP_EMAIL, pass: SMTP_PASS },
 });
 
+// Função para enviar notificação
 async function enviarNotificacaoEmail(pagamento, tipo = "gerado") {
   try {
     const assunto = tipo === "aprovado"
@@ -88,7 +89,10 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
         transaction_amount: valor,
         description: "Pagamento via PIX",
         payment_method_id: "pix",
-        payer: { email: payerEmail, identification: { type: "CPF", number: payerCpf } }
+        payer: {
+          email: payerEmail,
+          identification: { type: "CPF", number: payerCpf },
+        },
       },
       {
         headers: {
@@ -119,7 +123,7 @@ async function gerarChavePix(valor, payerEmail, payerCpf) {
 }
 
 /********************
- * ROTAS PIX
+ * ROTA GERAR PIX *
  ********************/
 app.post("/gerar-chave-pix", async (req, res) => {
   try {
@@ -127,11 +131,13 @@ app.post("/gerar-chave-pix", async (req, res) => {
     if (!valor || isNaN(valor) || valor <= 0) return res.status(400).json({ error: "Valor inválido" });
 
     const qrcodeData = await gerarChavePix(parseFloat(valor), payerEmail, payerCpf);
+
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
     pagamentos.push(qrcodeData);
     fs.writeFileSync(PAGAMENTOS_FILE, JSON.stringify(pagamentos, null, 2));
 
     enviarNotificacaoEmail(qrcodeData, "gerado").catch(e => console.error(e));
+
     res.json(qrcodeData);
 
   } catch (error) {
@@ -140,6 +146,9 @@ app.post("/gerar-chave-pix", async (req, res) => {
   }
 });
 
+/********************
+ * VERIFICAR STATUS PIX *
+ ********************/
 app.post("/verificar-status", async (req, res) => {
   const { txid } = req.body;
   if (!txid) return res.status(400).json({ error: "txid não fornecido" });
@@ -150,6 +159,7 @@ app.post("/verificar-status", async (req, res) => {
     });
 
     const status = response.data.status;
+
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
     const pagamento = pagamentos.find(p => p.txid === txid);
     if (pagamento) {
@@ -158,12 +168,16 @@ app.post("/verificar-status", async (req, res) => {
     }
 
     res.json({ status });
+
   } catch (error) {
     console.error("Erro verificar-status:", error?.response?.data || error?.message || error);
     res.status(500).json({ error: "Erro ao verificar status do pagamento" });
   }
 });
 
+/********************
+ * ATUALIZAR STATUS PAGAMENTOS *
+ ********************/
 async function atualizarStatusPagamentos() {
   try {
     const pagamentos = JSON.parse(fs.readFileSync(PAGAMENTOS_FILE, "utf8"));
@@ -188,11 +202,14 @@ async function atualizarStatusPagamentos() {
     console.error("Erro ao atualizar status dos pagamentos:", error.message);
   }
 }
+
 setInterval(atualizarStatusPagamentos, 60000);
 
 /********************
- * POSTGRES POOL RIFA
+ * POSTGRES POOL PARA RIFA (Render)
  ********************/
+
+// URL completa do Postgres (você me passou) — recomenda-se usar VAR DE AMBIENTE
 const DEFAULT_RIFA_DB_URL = "postgresql://rifa_user:KPZADel5FKz3FcLOPDcx5pYoRD9lA9UV@dpg-d3ong26uk2gs73dpqtjg-a.oregon-postgres.render.com/rifas_db_lw07";
 const RIFA_DB_URL = process.env.RIFA_DB_URL || DEFAULT_RIFA_DB_URL;
 
@@ -201,8 +218,10 @@ const poolRifa = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
+// número máximo padrão por rifa (padrão 300). Pode ser sobrescrito com var de ambiente.
 const MAX_NUMBERS = process.env.RIFA_MAX_NUMBERS ? parseInt(process.env.RIFA_MAX_NUMBERS, 10) : 300;
 
+// cria tabela rifa_numeros no Postgres se não existir (inclui campo status)
 async function ensureRifaTable() {
   const sql = `
     CREATE TABLE IF NOT EXISTS rifa_numeros (
@@ -211,7 +230,8 @@ async function ensureRifaTable() {
       buyer_name VARCHAR(150) NOT NULL,
       phone_last4 VARCHAR(4),
       txid VARCHAR(128) NOT NULL,
-      comprado_em TIMESTAMP NOT NULL DEFAULT NOW()
+      comprado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+      status VARCHAR(20) NOT NULL DEFAULT 'active'
     );
   `;
   try {
@@ -224,8 +244,9 @@ async function ensureRifaTable() {
 }
 
 /********************
- * MySQL pool (usuarios)
+ * CONEXÃO MySQL (InfinityFree) PARA USUÁRIOS
  ********************/
+// Só usado para SELECT na tabela usuarios (nome, telefone).
 const MYSQL_CONFIG = {
   host: process.env.MYSQL_HOST || "sql111.infinityfree.com",
   user: process.env.MYSQL_USER || "if0_40091435",
@@ -235,14 +256,23 @@ const MYSQL_CONFIG = {
   connectionLimit: 5,
   decimalNumbers: true
 };
+
 const mysqlPool = mysql.createPool(MYSQL_CONFIG);
 
 /********************
- * ENDPOINTS RIFA
+ * ENDPOINTS RIFA (Postgres)
  ********************/
+
+// retornar todos os números ocupados
+// Query param: include_cancelled=true  --> retorna também os cancelados
 app.get("/rifa/numeros", async (req, res) => {
   try {
-    const { rows } = await poolRifa.query("SELECT numero, buyer_name, phone_last4, txid, comprado_em FROM rifa_numeros ORDER BY numero ASC");
+    const includeCancelled = req.query.include_cancelled === 'true';
+    const sql = includeCancelled
+      ? "SELECT numero, buyer_name, phone_last4, txid, comprado_em, status FROM rifa_numeros ORDER BY numero ASC"
+      : "SELECT numero, buyer_name, phone_last4, txid, comprado_em, status FROM rifa_numeros WHERE status = 'active' ORDER BY numero ASC";
+
+    const { rows } = await poolRifa.query(sql);
     return res.json(rows);
   } catch (err) {
     console.error("Erro /rifa/numeros:", err);
@@ -250,28 +280,44 @@ app.get("/rifa/numeros", async (req, res) => {
   }
 });
 
+// retornar dados de um número (para modal)
+// Query param: include_cancelled=true  --> retorna também se estiver cancelado
 app.get("/rifa/numero/:numero", async (req, res) => {
   try {
     const numero = parseInt(req.params.numero, 10);
     if (!numero || numero < 1 || numero > MAX_NUMBERS) return res.status(400).json({ error: "Número inválido" });
 
     const { rows } = await poolRifa.query(
-      "SELECT numero, buyer_name, phone_last4, txid, comprado_em FROM rifa_numeros WHERE numero = $1",
+      "SELECT numero, buyer_name, phone_last4, txid, comprado_em, status, user_id FROM rifa_numeros WHERE numero = $1",
       [numero]
     );
 
     if (rows.length === 0) return res.status(404).json({ error: "Disponível" });
-    return res.json(rows[0]);
+
+    const includeCancelled = req.query.include_cancelled === 'true';
+    const r = rows[0];
+
+    // se não pediu para incluir cancelados e o registro está cancelado, trate como disponível (404)
+    if (!includeCancelled && r.status !== 'active') {
+      return res.status(404).json({ error: "Disponível" });
+    }
+
+    return res.json(r);
   } catch (err) {
     console.error("Erro /rifa/numero/:numero", err);
     return res.status(500).json({ error: "Erro ao buscar dados do número.", details: String(err) });
   }
 });
 
+/*
+POST /rifa/reservar
+(sem alterações lógicas, apenas garantido compatibilidade com novo schema)
+*/
 app.post("/rifa/reservar", async (req, res) => {
   const { quantidade, userId, txid, buyer_name, phone_last4, maxNumber } = req.body;
   const maxNum = Number.isInteger(maxNumber) && maxNumber > 0 ? maxNumber : MAX_NUMBERS;
 
+  // validações básicas
   if (!quantidade || !Number.isInteger(quantidade) || quantidade <= 0) return res.status(400).json({ error: "quantidade inválida" });
   if (!txid) return res.status(400).json({ error: "txid é obrigatório" });
   if (!userId) return res.status(400).json({ error: "userId é obrigatório" });
@@ -281,6 +327,7 @@ app.post("/rifa/reservar", async (req, res) => {
   try {
     await client.query("BEGIN");
 
+    // 1) Ler dados do usuário na tabela usuarios (MySQL) se buyer_name/phone_last4 não vieram
     let buyerName = buyer_name || null;
     let phoneLast4 = phone_last4 || null;
 
@@ -304,26 +351,34 @@ app.post("/rifa/reservar", async (req, res) => {
       }
     }
 
-    const selectTakenSql = "SELECT numero FROM rifa_numeros FOR UPDATE";
+    // 2) Bloquear tabela e pegar números já ocupados (apenas active)
+    const selectTakenSql = "SELECT numero FROM rifa_numeros WHERE status = 'active' FOR UPDATE";
     const takenRes = await client.query(selectTakenSql);
     const takenSet = new Set(takenRes.rows.map(r => r.numero));
 
+    // 3) Montar lista de disponíveis
     const available = [];
-    for (let i = 1; i <= maxNum; i++) if (!takenSet.has(i)) available.push(i);
+    for (let i = 1; i <= maxNum; i++) {
+      if (!takenSet.has(i)) available.push(i);
+    }
 
     if (available.length < quantidade) {
       await client.query("ROLLBACK");
       return res.status(409).json({ error: "Números insuficientes disponíveis", available: available.length });
     }
 
+    // 4) Escolher números aleatórios
     const chosen = [];
     while (chosen.length < quantidade) {
       const idx = Math.floor(Math.random() * available.length);
       chosen.push(available.splice(idx, 1)[0]);
     }
 
+    // 5) Inserir no Postgres (uma linha por número) — status fica no default 'active'
     const insertSql = "INSERT INTO rifa_numeros (numero, user_id, buyer_name, phone_last4, txid) VALUES ($1,$2,$3,$4,$5)";
-    for (const numero of chosen) await client.query(insertSql, [numero, userId, buyerName, phoneLast4, txid]);
+    for (const numero of chosen) {
+      await client.query(insertSql, [numero, userId, buyerName, phoneLast4, txid]);
+    }
 
     await client.query("COMMIT");
     console.log(`Reserva OK userId=${userId} txid=${txid} números=${JSON.stringify(chosen)}`);
@@ -332,92 +387,122 @@ app.post("/rifa/reservar", async (req, res) => {
   } catch (err) {
     try { await client.query("ROLLBACK"); } catch(e){ /* ignore */ }
     console.error("Erro /rifa/reservar:", err && err.stack ? err.stack : err);
-    if (err && err.code === '23505') return res.status(409).json({ error: "Conflito ao reservar (repetição de número). Tente novamente." });
+    if (err && err.code === '23505') { // duplicate key in Postgres
+      return res.status(409).json({ error: "Conflito ao reservar (repetição de número). Tente novamente." });
+    }
     return res.status(500).json({ error: "Erro interno ao reservar números", details: String(err).slice(0,2000) });
   } finally {
     client.release();
   }
 });
 
-// aliases
+// aliases para evitar 404 por variações
 app.post("/reservar", async (req, res) => { return app._router.handle(req, res, () => {}, "/rifa/reservar"); });
 app.post("/rifas/reservar", async (req, res) => { return app._router.handle(req, res, () => {}, "/rifa/reservar"); });
 
 /********************
  * DELETE /rifa/numero/:numero
+ * Marca um número como cancelled (não apaga)
  ********************/
 app.delete("/rifa/numero/:numero", async (req, res) => {
   const numero = parseInt(req.params.numero, 10);
-  if (!numero || numero < 1 || numero > MAX_NUMBERS) return res.status(400).json({ error: "Número inválido" });
+  if (!numero || numero < 1 || numero > MAX_NUMBERS) {
+    return res.status(400).json({ error: "Número inválido" });
+  }
 
   const client = await poolRifa.connect();
   try {
     await client.query("BEGIN");
-    const { rows } = await client.query("SELECT numero FROM rifa_numeros WHERE numero = $1", [numero]);
+
+    // Verifica existência
+    const { rows } = await client.query("SELECT numero, status FROM rifa_numeros WHERE numero = $1", [numero]);
     if (rows.length === 0) {
       await client.query("ROLLBACK");
       return res.status(404).json({ error: "Número não encontrado" });
     }
-    await client.query("DELETE FROM rifa_numeros WHERE numero = $1", [numero]);
+
+    // Se já estiver cancelado, retorna sucesso sem fazer nada
+    if (rows[0].status === 'cancelled') {
+      await client.query("COMMIT");
+      return res.json({ success: true, numero, already_cancelled: true });
+    }
+
+    // Marca como cancelled
+    await client.query("UPDATE rifa_numeros SET status = 'cancelled' WHERE numero = $1", [numero]);
     await client.query("COMMIT");
-    console.log(`Número ${numero} excluído da rifa`);
+
+    console.log(`Número ${numero} marcado como cancelled`);
     return res.json({ success: true, numero });
+
   } catch (err) {
-    await client.query("ROLLBACK").catch(()=>{});
-    console.error("Erro ao excluir número:", err);
-    return res.status(500).json({ error: "Erro ao excluir número", details: String(err) });
+    try { await client.query("ROLLBACK"); } catch(e){ /* ignore */ }
+    console.error("Erro ao marcar número como cancelled:", err);
+    return res.status(500).json({ error: "Erro ao cancelar número", details: String(err) });
   } finally {
     client.release();
   }
 });
 
 /********************
- * POST /rifa/delete (excluir múltiplos números)
+ * POST /rifa/delete
+ * Marca múltiplos números como cancelled (body: { numeros: [1,2,3] })
  ********************/
 app.post("/rifa/delete", async (req, res) => {
   const { numeros } = req.body;
-  if (!Array.isArray(numeros) || numeros.length === 0) return res.status(400).json({ error: "Nenhum número fornecido" });
+  if (!Array.isArray(numeros) || numeros.length === 0) {
+    return res.status(400).json({ error: "Array 'numeros' obrigatório" });
+  }
+
+  // sanitização: aceitar só inteiros válidos dentro do range
+  const clean = numeros
+    .map(n => parseInt(n, 10))
+    .filter(n => Number.isInteger(n) && n >= 1 && n <= MAX_NUMBERS);
+
+  if (clean.length === 0) {
+    return res.status(400).json({ error: "Nenhum número válido recebido" });
+  }
 
   const client = await poolRifa.connect();
   try {
     await client.query("BEGIN");
-    const deleted = [];
 
-    for (const num of numeros) {
-      const numero = parseInt(num, 10);
-      if (!numero || numero < 1 || numero > MAX_NUMBERS) continue;
-
-      const { rowCount } = await client.query(
-        "DELETE FROM rifa_numeros WHERE numero = $1",
-        [numero]
-      );
-      if (rowCount > 0) deleted.push(numero);
-    }
+    // Atualiza status para cancelled apenas onde estava diferente
+    const resUpdate = await client.query(
+      "UPDATE rifa_numeros SET status = 'cancelled' WHERE numero = ANY($1::int[]) AND status <> 'cancelled' RETURNING numero",
+      [clean]
+    );
 
     await client.query("COMMIT");
-    return res.json({ success: true, deleted });
+
+    const deletedNums = resUpdate.rows.map(r => r.numero);
+    console.log(`Números marcados como cancelled: ${JSON.stringify(deletedNums)}`);
+
+    return res.json({ success: true, deleted: deletedNums });
 
   } catch (err) {
-    await client.query("ROLLBACK").catch(()=>{});
-    console.error("Erro ao apagar números:", err);
-    return res.status(500).json({ error: "Erro ao apagar números", details: String(err) });
+    try { await client.query("ROLLBACK"); } catch(e){ /* ignore */ }
+    console.error("Erro ao cancelar números em lote:", err);
+    return res.status(500).json({ error: "Erro ao cancelar números", details: String(err) });
   } finally {
     client.release();
   }
 });
 
 /********************
- * Inicialização
+ * Inicialização / Start
  ********************/
 (async function start() {
   try {
+    // garante tabela de rifa (e a coluna status)
     await ensureRifaTable();
 
+    // testa conexões MySQL e Postgres
     try {
       await mysqlPool.getConnection().then(conn=>conn.release());
       console.log("Conectado ao MySQL (InfinityFree) para usuários.");
     } catch (mysqlErr) {
-      console.warn("Não foi possível conectar ao MySQL (usuarios). Erro:", mysqlErr.message || mysqlErr);
+      console.warn("Não foi possível conectar ao MySQL (usuarios). Verifique credenciais. Erro:", mysqlErr.message || mysqlErr);
+      // não encerra; pode ser ambiente de teste
     }
 
     await poolRifa.query("SELECT 1");
