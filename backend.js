@@ -275,47 +275,20 @@ app.get("/rifa/numeros", async (req, res) => {
 
 // retornar dados de um número (para modal)
 app.get("/rifa/numero/:numero", async (req, res) => {
-  const numero = parseInt(req.params.numero, 10);
-
-  // valida número
-  if (!numero || numero < 1 || numero > MAX_NUMBERS) {
-    return res.status(400).json({ error: "Número inválido" });
-  }
-
   try {
-    const result = await poolRifa.query(
+    const numero = parseInt(req.params.numero, 10);
+    if (!numero || numero < 1 || numero > MAX_NUMBERS) return res.status(400).json({ error: "Número inválido" });
+
+    const { rows } = await poolRifa.query(
       "SELECT numero, buyer_name, phone_last4, txid, comprado_em, user_id FROM rifa_numeros WHERE numero = $1",
       [numero]
     );
 
-    if (result.rows.length === 0) {
-      // número disponível
-      return res.json({
-        numero,
-        status: "disponível",
-        buyer_name: null,
-        phone_last4: null,
-        txid: null,
-        comprado_em: null,
-        user_id: null
-      });
-    }
-
-    // número já reservado
-    const row = result.rows[0];
-    res.json({
-      numero: row.numero,
-      status: "reservado",
-      buyer_name: row.buyer_name,
-      phone_last4: row.phone_last4,
-      txid: row.txid,
-      comprado_em: row.comprado_em,
-      user_id: row.user_id
-    });
-
+    if (rows.length === 0) return res.status(404).json({ error: "Disponível" });
+    return res.json(rows[0]);
   } catch (err) {
-    console.error("Erro ao buscar número:", err);
-    res.status(500).json({ error: "Erro ao buscar número", details: String(err) });
+    console.error("Erro /rifa/numero/:numero", err);
+    return res.status(500).json({ error: "Erro ao buscar dados do número.", details: String(err) });
   }
 });
 
