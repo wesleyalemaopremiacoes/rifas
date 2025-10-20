@@ -469,6 +469,29 @@ app.post("/rifa/delete", async (req, res) => {
   }
 });
 
+app.get("/rifa/numero/:numero", async (req, res) => {
+  const numero = parseInt(req.params.numero, 10);
+  if (!numero || numero < 1 || numero > MAX_NUMBERS) {
+    return res.status(400).json({ error: "Número inválido" });
+  }
+
+  try {
+    const result = await poolRifa.query(
+      "SELECT numero, buyer_name, phone_last4, comprado_em FROM rifa_numeros WHERE numero=$1",
+      [numero]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Número não encontrado" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Erro ao buscar número:", err);
+    res.status(500).json({ error: "Erro ao buscar número" });
+  }
+});
+
 /********************
  * aliases para evitar 404 por variações
  ********************/
