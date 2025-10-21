@@ -476,6 +476,13 @@ app.post("/reservar", async (req, res) => { return app._router.handle(req, res, 
 app.post("/rifas/reservar", async (req, res) => { return app._router.handle(req, res, () => {}, "/rifa/reservar"); });
 
 /********************
+ * ROTA DE PING (para manter servidor ativo no Render)
+ ********************/
+app.get("/ping", (req, res) => {
+  res.status(200).send("Servidor ativo 🚀");
+});
+
+/********************
  * Inicialização / Start
  ********************/
 (async function start() {
